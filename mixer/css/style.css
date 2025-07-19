@@ -1,0 +1,190 @@
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+                color: #ffffff;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                min-height: 100vh;
+                overflow-x: hidden;
+            }
+            
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            
+            .header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding: 40px 0;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 20px;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .header h1 {
+                font-size: 3.5rem;
+                font-weight: 700;
+                background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+                background-size: 400% 400%;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                animation: gradientShift 4s ease-in-out infinite;
+                margin-bottom: 10px;
+            }
+            
+            @keyframes gradientShift {
+                0%, 100% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+            }
+            
+            .header p {
+                font-size: 1.2rem;
+                opacity: 0.8;
+                line-height: 1.6;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+            
+            .visualizer-container {
+                background: rgba(0, 0, 0, 0.4);
+                border-radius: 20px;
+                padding: 30px;
+                margin-bottom: 30px;
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .visualizer-container::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(45deg, rgba(255, 107, 107, 0.1), rgba(78, 205, 196, 0.1), rgba(69, 183, 209, 0.1));
+                pointer-events: none;
+                animation: pulseGlow 3s ease-in-out infinite;
+            }
+            
+            @keyframes pulseGlow {
+                0%, 100% { opacity: 0.3; }
+                50% { opacity: 0.6; }
+            }
+            
+            #akko {
+                height: 600px;
+                border-radius: 15px;
+                overflow: hidden;
+                position: relative;
+                z-index: 1;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .controls-info {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+                margin-top: 30px;
+            }
+            
+            .info-card {
+                background: rgba(255, 255, 255, 0.05);
+                padding: 25px;
+                border-radius: 15px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(5px);
+            }
+            
+            .info-card h3 {
+                color: #4ecdc4;
+                margin-bottom: 15px;
+                font-size: 1.3rem;
+            }
+            
+            .info-card ul {
+                list-style: none;
+                padding: 0;
+            }
+            
+            .info-card li {
+                padding: 8px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                opacity: 0.8;
+            }
+            
+            .info-card li:last-child {
+                border-bottom: none;
+            }
+            
+            .feature-highlight {
+                background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(78, 205, 196, 0.2));
+                padding: 20px;
+                border-radius: 15px;
+                margin: 30px 0;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                text-align: center;
+            }
+            
+            .feature-highlight strong {
+                color: #ff6b6b;
+            }
+            
+            /* Responsive Design */
+            @media (max-width: 768px) {
+                .container {
+                    padding: 15px;
+                }
+                
+                .header h1 {
+                    font-size: 2.5rem;
+                }
+                
+                .controls-info {
+                    grid-template-columns: 1fr;
+                    gap: 20px;
+                }
+                
+                #akko {
+                    height: 400px;
+                }
+                
+                .visualizer-container {
+                    padding: 20px;
+                }
+            }
+            
+            /* Loading animation for when Akko is initializing */
+            .loading {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 200px;
+                font-size: 1.2rem;
+                opacity: 0.7;
+            }
+            
+            .loading::after {
+                content: '';
+                width: 20px;
+                height: 20px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-top: 2px solid #4ecdc4;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-left: 10px;
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
