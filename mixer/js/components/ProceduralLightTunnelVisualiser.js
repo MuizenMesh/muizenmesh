@@ -10,6 +10,7 @@ class ProceduralLightTunnelVisualiser extends Akko.Visualiser {
 
     onInit(data) {
         this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(75, data.width / data.height, 0.1, 1000);
         this.camera.position.z = 0;
 
         // Add a simple ambient light to make things visible
