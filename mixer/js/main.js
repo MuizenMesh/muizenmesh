@@ -59,7 +59,9 @@
             
             try {
                 console.log('Adding DynamicParticleSwarmVisualiser...');
-                akko.addVisualiser(new DynamicParticleSwarmVisualiser());
+                const dpsVis = new DynamicParticleSwarmVisualiser();
+                console.log('DynamicParticleSwarmVisualiser created:', dpsVis);
+                akko.addVisualiser(dpsVis);
                 console.log('✅ DynamicParticleSwarmVisualiser added');
             } catch (e) {
                 console.error('❌ DynamicParticleSwarmVisualiser failed:', e);
@@ -67,7 +69,9 @@
             
             try {
                 console.log('Adding AudioReactiveVoxelGridVisualiser...');
-                akko.addVisualiser(new AudioReactiveVoxelGridVisualiser());
+                const avgVis = new AudioReactiveVoxelGridVisualiser();
+                console.log('AudioReactiveVoxelGridVisualiser created:', avgVis);
+                akko.addVisualiser(avgVis);
                 console.log('✅ AudioReactiveVoxelGridVisualiser added');
             } catch (e) {
                 console.error('❌ AudioReactiveVoxelGridVisualiser failed:', e);
@@ -75,7 +79,9 @@
             
             try {
                 console.log('Adding ProceduralLightTunnelVisualiser...');
-                akko.addVisualiser(new ProceduralLightTunnelVisualiser());
+                const pltVis = new ProceduralLightTunnelVisualiser();
+                console.log('ProceduralLightTunnelVisualiser created:', pltVis);
+                akko.addVisualiser(pltVis);
                 console.log('✅ ProceduralLightTunnelVisualiser added');
             } catch (e) {
                 console.error('❌ ProceduralLightTunnelVisualiser failed:', e);
@@ -83,7 +89,9 @@
             
             try {
                 console.log('Adding InterconnectedNodeNetworkVisualiser...');
-                akko.addVisualiser(new InterconnectedNodeNetworkVisualiser());
+                const innVis = new InterconnectedNodeNetworkVisualiser();
+                console.log('InterconnectedNodeNetworkVisualiser created:', innVis);
+                akko.addVisualiser(innVis);
                 console.log('✅ InterconnectedNodeNetworkVisualiser added');
             } catch (e) {
                 console.error('❌ InterconnectedNodeNetworkVisualiser failed:', e);

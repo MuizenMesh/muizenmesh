@@ -45,7 +45,7 @@ class DynamicParticleSwarmVisualiser extends Akko.Visualiser {
 
         const shaderMaterial = new THREE.ShaderMaterial({
             uniforms: {
-                // pointTexture: { value: new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/disc.png') } // Removed external texture for debugging
+                                pointTexture: { value: new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/disc.png') }
             },
             vertexShader: `
                 attribute float size;
