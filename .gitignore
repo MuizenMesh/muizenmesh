@@ -10,3 +10,6 @@ mall/*
 store/*
 
 
+
+# Local Netlify folder
+.netlify
