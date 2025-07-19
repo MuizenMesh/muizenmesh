@@ -57,6 +57,38 @@
                 console.error('❌ RingVisualiser failed:', e);
             }
             
+            try {
+                console.log('Adding DynamicParticleSwarmVisualiser...');
+                akko.addVisualiser(new DynamicParticleSwarmVisualiser());
+                console.log('✅ DynamicParticleSwarmVisualiser added');
+            } catch (e) {
+                console.error('❌ DynamicParticleSwarmVisualiser failed:', e);
+            }
+            
+            try {
+                console.log('Adding AudioReactiveVoxelGridVisualiser...');
+                akko.addVisualiser(new AudioReactiveVoxelGridVisualiser());
+                console.log('✅ AudioReactiveVoxelGridVisualiser added');
+            } catch (e) {
+                console.error('❌ AudioReactiveVoxelGridVisualiser failed:', e);
+            }
+            
+            try {
+                console.log('Adding ProceduralLightTunnelVisualiser...');
+                akko.addVisualiser(new ProceduralLightTunnelVisualiser());
+                console.log('✅ ProceduralLightTunnelVisualiser added');
+            } catch (e) {
+                console.error('❌ ProceduralLightTunnelVisualiser failed:', e);
+            }
+            
+            try {
+                console.log('Adding InterconnectedNodeNetworkVisualiser...');
+                akko.addVisualiser(new InterconnectedNodeNetworkVisualiser());
+                console.log('✅ InterconnectedNodeNetworkVisualiser added');
+            } catch (e) {
+                console.error('❌ InterconnectedNodeNetworkVisualiser failed:', e);
+            }
+            
             // Check what visualizers are available
             document.getElementById('playButton').addEventListener('click', function() {
                 this.style.display = 'none'; // Hide the button after click
