@@ -9,6 +9,7 @@ class InterconnectedNodeNetworkVisualiser extends Akko.Visualiser {
     }
 
     onInit(data) {
+        console.log('InterconnectedNodeNetworkVisualiser: onInit called');
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, data.width / data.height, 0.1, 1000);
         this.camera.position.z = 100;
@@ -49,6 +50,7 @@ class InterconnectedNodeNetworkVisualiser extends Akko.Visualiser {
     }
 
     onUpdate(data) {
+        // console.log('InterconnectedNodeNetworkVisualiser: onUpdate called');
         const frequencyData = data.frequencyData;
         const timeDomainData = data.timeDomainData;
 

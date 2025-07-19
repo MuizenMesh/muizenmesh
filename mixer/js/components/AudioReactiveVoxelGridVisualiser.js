@@ -52,9 +52,11 @@ class AudioReactiveVoxelGridVisualiser extends Akko.Visualiser {
             const scale = 1 + frequency * 0.5; // Scale based on frequency
             voxel.scale.set(scale, scale, scale);
 
-            // Color based on time domain
-            const colorValue = Math.max(0, Math.min(1, timeDomain * 2));
-            voxel.material.color.setRGB(colorValue, 1 - colorValue, 0);
+            // Color based on time domain and frequency
+            const hue = (frequency * 0.5 + timeDomain * 0.5) % 1; // Combine frequency and timeDomain for hue
+            const saturation = 0.8; // Keep saturation high for vibrant colors
+            const lightness = 0.4 + frequency * 0.3; // Lightness reacts to frequency
+            voxel.material.color.setHSL(hue, saturation, lightness);
         });
 
         this.scene.rotation.x += 0.001;

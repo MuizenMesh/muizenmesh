@@ -9,6 +9,7 @@ class DynamicParticleSwarmVisualiser extends Akko.Visualiser {
     }
 
     onInit(data) {
+        console.log('DynamicParticleSwarmVisualiser: onInit called');
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(75, data.width / data.height, 0.1, 1000);
         this.camera.position.z = 50;
@@ -44,7 +45,7 @@ class DynamicParticleSwarmVisualiser extends Akko.Visualiser {
 
         const shaderMaterial = new THREE.ShaderMaterial({
             uniforms: {
-                pointTexture: { value: new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/disc.png') }
+                // pointTexture: { value: new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/disc.png') } // Removed external texture for debugging
             },
             vertexShader: `
                 attribute float size;
@@ -75,6 +76,7 @@ class DynamicParticleSwarmVisualiser extends Akko.Visualiser {
     }
 
     onUpdate(data) {
+        // console.log('DynamicParticleSwarmVisualiser: onUpdate called');
         // Example: Make particles react to bass frequencies
         const bass = data.frequencyData[0] || 0; // Assuming bass is the first frequency band
         const positions = this.particleSystem.geometry.attributes.position.array;
