@@ -233,13 +233,13 @@
                 </div>
                 
                 <div class="info-card">
-                    <h3>🎨 Visual Features</h3>
+                    <h3>🎨 Visual Modes</h3>
                     <ul>
-                        <li>Real-time 3D cube visualization</li>
-                        <li>Color-coded frequency analysis</li>
-                        <li>Interactive particle system</li>
-                        <li>Responsive to audio dynamics</li>
-                        <li>Smooth WebGL rendering</li>
+                        <li><strong>Cubes:</strong> 3D frequency-reactive cubes</li>
+                        <li><strong>Wave:</strong> Animated wireframe terrain</li>
+                        <li><strong>Sphere:</strong> Particle sphere visualization</li>
+                        <li><strong>Bars:</strong> Classic frequency bars</li>
+                        <li>Switch between modes using controls</li>
                     </ul>
                 </div>
             </div>
@@ -340,12 +340,181 @@
             };
 
 
-            // Starting Akko and adding our visualiser.
+            // Create multiple visualizers
+            function WaveVisualiser() {
+                Akko.Visualiser.call(this, {
+                    code: 'Wv',
+                    name: 'Wave Visualiser',
+                    fftSize: 512,
+                });
+            }
+            WaveVisualiser.prototype = Object.create(Akko.Visualiser.prototype);
+            WaveVisualiser.prototype.constructor = WaveVisualiser;
+            WaveVisualiser.prototype.onInit = function(data) {
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(75, data.width / data.height, 0.1, 1000);
+                this.camera.position.z = 50;
+                this.scene.add(this.camera);
+                
+                this.geometry = new THREE.PlaneGeometry(100, 50, 128, 32);
+                this.material = new THREE.MeshBasicMaterial({
+                    color: 0x00ff88,
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                this.mesh = new THREE.Mesh(this.geometry, this.material);
+                this.scene.add(this.mesh);
+                
+                this.originalPositions = this.geometry.attributes.position.array.slice();
+            };
+            WaveVisualiser.prototype.onUpdate = function(data) {
+                var positions = this.geometry.attributes.position.array;
+                for (var i = 0; i < positions.length; i += 3) {
+                    var index = Math.floor((i / 3) % data.frequencyData.length);
+                    positions[i + 2] = this.originalPositions[i + 2] + data.frequencyData[index] * 20;
+                }
+                this.geometry.attributes.position.needsUpdate = true;
+                this.mesh.rotation.x += 0.01;
+                this.mesh.rotation.y += 0.005;
+                data.renderer.render(this.scene, this.camera);
+            };
+            WaveVisualiser.prototype.onDestroy = function() {
+                delete this.scene;
+                delete this.camera;
+                delete this.mesh;
+            };
+
+            // Particle Sphere Visualizer
+            function SphereVisualiser() {
+                Akko.Visualiser.call(this, {
+                    code: 'Sp',
+                    name: 'Sphere Visualiser',
+                    fftSize: 256,
+                });
+            }
+            SphereVisualiser.prototype = Object.create(Akko.Visualiser.prototype);
+            SphereVisualiser.prototype.constructor = SphereVisualiser;
+            SphereVisualiser.prototype.onInit = function(data) {
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(60, data.width / data.height, 0.1, 1000);
+                this.camera.position.z = 30;
+                this.scene.add(this.camera);
+                
+                this.particles = [];
+                var particleCount = 200;
+                var geometry = new THREE.SphereGeometry(0.2, 8, 8);
+                
+                for (var i = 0; i < particleCount; i++) {
+                    var material = new THREE.MeshBasicMaterial({
+                        color: new THREE.Color().setHSL(i / particleCount, 1, 0.5)
+                    });
+                    var particle = new THREE.Mesh(geometry, material);
+                    
+                    // Position particles in a sphere
+                    var phi = Math.acos(-1 + (2 * i) / particleCount);
+                    var theta = Math.sqrt(particleCount * Math.PI) * phi;
+                    var radius = 15;
+                    
+                    particle.position.x = radius * Math.cos(theta) * Math.sin(phi);
+                    particle.position.y = radius * Math.sin(theta) * Math.sin(phi);
+                    particle.position.z = radius * Math.cos(phi);
+                    
+                    particle.originalPosition = particle.position.clone();
+                    this.scene.add(particle);
+                    this.particles.push(particle);
+                }
+            };
+            SphereVisualiser.prototype.onUpdate = function(data) {
+                for (var i = 0; i < this.particles.length; i++) {
+                    var particle = this.particles[i];
+                    var freqIndex = Math.floor((i / this.particles.length) * data.frequencyData.length);
+                    var scale = 1 + data.frequencyData[freqIndex] * 2;
+                    
+                    particle.scale.setScalar(scale);
+                    particle.material.color.setHSL((i / this.particles.length + Date.now() * 0.0001) % 1, 1, 0.5);
+                    
+                    // Rotate the entire sphere
+                    particle.position.copy(particle.originalPosition);
+                    particle.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), Date.now() * 0.001);
+                }
+                data.renderer.render(this.scene, this.camera);
+            };
+            SphereVisualiser.prototype.onDestroy = function() {
+                delete this.scene;
+                delete this.camera;
+                delete this.particles;
+            };
+
+            // Frequency Bars Visualizer
+            function BarsVisualiser() {
+                Akko.Visualiser.call(this, {
+                    code: 'Br',
+                    name: 'Frequency Bars',
+                    fftSize: 128,
+                });
+            }
+            BarsVisualiser.prototype = Object.create(Akko.Visualiser.prototype);
+            BarsVisualiser.prototype.constructor = BarsVisualiser;
+            BarsVisualiser.prototype.onInit = function(data) {
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(60, data.width / data.height, 0.1, 1000);
+                this.camera.position.set(0, 10, 30);
+                this.camera.lookAt(0, 0, 0);
+                this.scene.add(this.camera);
+                
+                this.bars = [];
+                var barCount = 64;
+                var barWidth = 0.8;
+                var spacing = 1;
+                
+                for (var i = 0; i < barCount; i++) {
+                    var geometry = new THREE.BoxGeometry(barWidth, 1, barWidth);
+                    var hue = i / barCount;
+                    var material = new THREE.MeshBasicMaterial({
+                        color: new THREE.Color().setHSL(hue, 0.8, 0.6)
+                    });
+                    var bar = new THREE.Mesh(geometry, material);
+                    
+                    bar.position.x = (i - barCount / 2) * spacing;
+                    bar.position.y = 0;
+                    
+                    this.scene.add(bar);
+                    this.bars.push(bar);
+                }
+            };
+            BarsVisualiser.prototype.onUpdate = function(data) {
+                for (var i = 0; i < this.bars.length; i++) {
+                    var bar = this.bars[i];
+                    var freqIndex = Math.floor((i / this.bars.length) * data.frequencyData.length);
+                    var height = Math.max(0.1, data.frequencyData[freqIndex] * 20);
+                    
+                    bar.scale.y = this.lerp(bar.scale.y, height, 0.1);
+                    bar.position.y = bar.scale.y / 2;
+                    
+                    // Update color based on frequency
+                    var hue = (i / this.bars.length + data.frequencyData[freqIndex]) % 1;
+                    bar.material.color.setHSL(hue, 0.8, 0.6);
+                }
+                data.renderer.render(this.scene, this.camera);
+            };
+            BarsVisualiser.prototype.onDestroy = function() {
+                delete this.scene;
+                delete this.camera;
+                delete this.bars;
+            };
+
+            // Starting Akko and adding multiple visualisers
             var akko = new Akko({
                 autoPlay: true,
                 useDefaultVisualisers: false,
             });
+            
+            // Add all our custom visualizers
             akko.addVisualiser(new CustomVisualiser());
+            akko.addVisualiser(new WaveVisualiser());
+            akko.addVisualiser(new SphereVisualiser());
+            akko.addVisualiser(new BarsVisualiser());
             akko.addTrack('/mixer/audio/Fatal Force - Fan Girls.mp3');
             akko.addTrack('/mixer/audio/Computer Music All-Stars - Albatross v2.mp3');
             akko.start();
