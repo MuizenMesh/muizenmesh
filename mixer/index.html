@@ -340,61 +340,96 @@
             };
 
 
-            // Create multiple visualizers
-            function WaveVisualiser() {
-                Akko.Visualiser.call(this, {
-                    code: 'Wv',
-                    name: 'Wave Visualiser',
-                    fftSize: 512,
-                });
-            }
-            WaveVisualiser.prototype = Object.create(Akko.Visualiser.prototype);
-            WaveVisualiser.prototype.constructor = WaveVisualiser;
-            WaveVisualiser.prototype.onInit = function(data) {
-                this.scene = new THREE.Scene();
-                this.camera = new THREE.PerspectiveCamera(75, data.width / data.height, 0.1, 1000);
-                this.camera.position.z = 50;
-                this.scene.add(this.camera);
-                
-                this.geometry = new THREE.PlaneGeometry(100, 50, 128, 32);
-                this.material = new THREE.MeshBasicMaterial({
-                    color: 0x00ff88,
-                    wireframe: true,
-                    transparent: true,
-                    opacity: 0.8
-                });
-                this.mesh = new THREE.Mesh(this.geometry, this.material);
-                this.scene.add(this.mesh);
-                
-                this.originalPositions = this.geometry.attributes.position.array.slice();
-            };
-            WaveVisualiser.prototype.onUpdate = function(data) {
-                var positions = this.geometry.attributes.position.array;
-                for (var i = 0; i < positions.length; i += 3) {
-                    var index = Math.floor((i / 3) % data.frequencyData.length);
-                    positions[i + 2] = this.originalPositions[i + 2] + data.frequencyData[index] * 20;
+            // Wave Visualizer based on official Akko patterns
+            class WaveVisualiser extends Akko.Visualiser {
+                constructor() {
+                    super({
+                        code: 'Wv',
+                        name: 'Wave Terrain',
+                        fftSize: 128,
+                        smoothingTimeConstant: 0.8,
+                    });
                 }
-                this.geometry.attributes.position.needsUpdate = true;
-                this.mesh.rotation.x += 0.01;
-                this.mesh.rotation.y += 0.005;
-                data.renderer.render(this.scene, this.camera);
-            };
-            WaveVisualiser.prototype.onDestroy = function() {
-                delete this.scene;
-                delete this.camera;
-                delete this.mesh;
-            };
+
+                onInit(data) {
+                    this.setupSceneAndCamera(data);
+                    this.setupWavePlane();
+                }
+
+                setupSceneAndCamera(data) {
+                    this.scene = new THREE.Scene();
+                    this.camera = new THREE.PerspectiveCamera(60, data.width / data.height, 0.1, 100);
+                    this.camera.position.set(0, 15, 25);
+                    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+                    this.scene.add(this.camera);
+                }
+
+                setupWavePlane() {
+                    // Create wireframe plane similar to official visualizers
+                    let geometry = new THREE.PlaneGeometry(30, 30, 32, 32);
+                    let material = new THREE.MeshBasicMaterial({
+                        color: 0x00ff88,
+                        wireframe: true,
+                        transparent: true,
+                        opacity: 0.8
+                    });
+                    this.mesh = new THREE.Mesh(geometry, material);
+                    this.mesh.rotation.x = -Math.PI / 2; // Lay flat
+                    this.scene.add(this.mesh);
+                    
+                    // Store original vertex positions
+                    this.originalVertices = [];
+                    for (let i = 0; i < geometry.vertices.length; i++) {
+                        this.originalVertices[i] = geometry.vertices[i].clone();
+                    }
+                }
+
+                onUpdate(data) {
+                    // Animate vertices based on frequency data
+                    for (let i = 0; i < this.mesh.geometry.vertices.length; i++) {
+                        let vertex = this.mesh.geometry.vertices[i];
+                        let freqIndex = Math.floor((i / this.mesh.geometry.vertices.length) * data.frequencyData.length);
+                        let frequency = Math.abs(data.frequencyData[freqIndex]);
+                        let timeDomain = data.timeDomainData[freqIndex];
+                        
+                        let value = frequency * timeDomain;
+                        let newZ = this.lerp(vertex.z, value * 10, 0.1);
+                        vertex.z = newZ;
+                    }
+                    
+                    this.mesh.geometry.verticesNeedUpdate = true;
+                    this.mesh.rotation.z += 0.005;
+                    
+                    // Color cycling
+                    let avgFreq = data.frequencyData.reduce((a, b) => a + b, 0) / data.frequencyData.length;
+                    this.mesh.material.color.setHSL(0.3 + avgFreq * 0.4, 0.8, 0.6);
+                    
+                    data.renderer.render(this.scene, this.camera);
+                }
+
+                onResize(data) {
+                    this.camera.aspect = data.width / data.height;
+                    this.camera.updateProjectionMatrix();
+                }
+
+                onDestroy() {
+                    delete this.scene;
+                    delete this.camera;
+                    delete this.mesh;
+                }
+            }
 
             // Particle Sphere Visualizer
-            function SphereVisualiser() {
-                Akko.Visualiser.call(this, {
-                    code: 'Sp',
-                    name: 'Sphere Visualiser',
-                    fftSize: 256,
-                });
+            class SphereVisualiser extends Akko.Visualiser {
+                constructor() {
+                    super({
+                        code: 'Sp',
+                        name: 'Sphere Visualiser',
+                        fftSize: 256,
+                        smoothingTimeConstant: 0.3,
+                    });
+                }
             }
-            SphereVisualiser.prototype = Object.create(Akko.Visualiser.prototype);
-            SphereVisualiser.prototype.constructor = SphereVisualiser;
             SphereVisualiser.prototype.onInit = function(data) {
                 this.scene = new THREE.Scene();
                 this.camera = new THREE.PerspectiveCamera(60, data.width / data.height, 0.1, 1000);
@@ -446,63 +481,107 @@
                 delete this.particles;
             };
 
-            // Frequency Bars Visualizer
-            function BarsVisualiser() {
-                Akko.Visualiser.call(this, {
-                    code: 'Br',
-                    name: 'Frequency Bars',
-                    fftSize: 128,
-                });
-            }
-            BarsVisualiser.prototype = Object.create(Akko.Visualiser.prototype);
-            BarsVisualiser.prototype.constructor = BarsVisualiser;
-            BarsVisualiser.prototype.onInit = function(data) {
-                this.scene = new THREE.Scene();
-                this.camera = new THREE.PerspectiveCamera(60, data.width / data.height, 0.1, 1000);
-                this.camera.position.set(0, 10, 30);
-                this.camera.lookAt(0, 0, 0);
-                this.scene.add(this.camera);
-                
-                this.bars = [];
-                var barCount = 64;
-                var barWidth = 0.8;
-                var spacing = 1;
-                
-                for (var i = 0; i < barCount; i++) {
-                    var geometry = new THREE.BoxGeometry(barWidth, 1, barWidth);
-                    var hue = i / barCount;
-                    var material = new THREE.MeshBasicMaterial({
-                        color: new THREE.Color().setHSL(hue, 0.8, 0.6)
+            // Frequency Bars Visualizer based on official Akko BarVisualiser
+            class BarsVisualiser extends Akko.Visualiser {
+                constructor() {
+                    super({
+                        code: 'Br',
+                        name: 'Frequency Bars',
+                        fftSize: 64,
+                        smoothingTimeConstant: 0.9,
                     });
-                    var bar = new THREE.Mesh(geometry, material);
-                    
-                    bar.position.x = (i - barCount / 2) * spacing;
-                    bar.position.y = 0;
-                    
-                    this.scene.add(bar);
-                    this.bars.push(bar);
                 }
-            };
-            BarsVisualiser.prototype.onUpdate = function(data) {
-                for (var i = 0; i < this.bars.length; i++) {
-                    var bar = this.bars[i];
-                    var freqIndex = Math.floor((i / this.bars.length) * data.frequencyData.length);
-                    var height = Math.max(0.1, data.frequencyData[freqIndex] * 20);
-                    
-                    bar.scale.y = this.lerp(bar.scale.y, height, 0.1);
-                    bar.position.y = bar.scale.y / 2;
-                    
-                    // Update color based on frequency
-                    var hue = (i / this.bars.length + data.frequencyData[freqIndex]) % 1;
-                    bar.material.color.setHSL(hue, 0.8, 0.6);
+
+                onInit(data) {
+                    this.setupSceneAndCamera(data);
+                    this.setupBars();
                 }
-                data.renderer.render(this.scene, this.camera);
-            };
-            BarsVisualiser.prototype.onDestroy = function() {
-                delete this.scene;
-                delete this.camera;
-                delete this.bars;
-            };
+
+                setupSceneAndCamera(data) {
+                    this.scene = new THREE.Scene();
+                    this.camera = new THREE.PerspectiveCamera(60, data.width / data.height, 0.1, 100);
+                    this.camera.position.set(0, 8, 15);
+                    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+                    this.cameraPivot = new THREE.Object3D();
+                    this.cameraPivot.add(this.camera);
+                    this.scene.add(this.cameraPivot);
+                }
+
+                setupBars() {
+                    this.bars = [];
+                    const BAR_COUNT = 32;
+                    let geometry = new THREE.BoxGeometry(0.4, 1, 0.4);
+                    
+                    for (let i = 0; i < BAR_COUNT; i++) {
+                        let hue = i / BAR_COUNT;
+                        let material = new THREE.MeshBasicMaterial({
+                            color: new THREE.Color().setHSL(hue, 0.8, 0.6)
+                        });
+                        let bar = new THREE.Mesh(geometry, material);
+                        
+                        // Arrange in a circle like the official BarVisualiser
+                        let angle = (i / BAR_COUNT) * Math.PI * 2;
+                        let radius = 5;
+                        bar.position.x = Math.cos(angle) * radius;
+                        bar.position.z = Math.sin(angle) * radius;
+                        bar.position.y = 0;
+                        
+                        this.scene.add(bar);
+                        this.bars.push(bar);
+                    }
+                }
+
+                onUpdate(data) {
+                    const BAR_COUNT = this.bars.length;
+                    
+                    for (let i = 0; i < BAR_COUNT; i++) {
+                        let bar = this.bars[i];
+                        let frequency = Math.abs(data.frequencyData[i]) || 0;
+                        let timeDomain = Math.abs(data.timeDomainData[i]) || 0;
+                        
+                        // Use the same calculation as official BarVisualiser
+                        let value = frequency * timeDomain;
+                        if (value === Infinity || value === -Infinity || isNaN(value)) {
+                            value = 0;
+                        }
+                        
+                        // Scale the bars more aggressively for visibility
+                        let targetScale = Math.max(0.1, value * 25);
+                        let newY = this.lerp(bar.scale.y, targetScale, 0.2);
+                        
+                        bar.scale.y = newY;
+                        bar.position.y = newY / 2;
+                        
+                        // More vibrant color changes
+                        let baseHue = i / BAR_COUNT;
+                        let dynamicHue = (baseHue + frequency * 0.5) % 1;
+                        let saturation = 0.9;
+                        let lightness = 0.4 + Math.min(0.5, frequency * 2);
+                        
+                        bar.material.color.setHSL(dynamicHue, saturation, lightness);
+                        
+                        // Debug: log some values for the first few bars
+                        if (i < 3) {
+                            console.log(`Bar ${i}: freq=${frequency.toFixed(3)}, time=${timeDomain.toFixed(3)}, value=${value.toFixed(3)}, scale=${newY.toFixed(3)}`);
+                        }
+                    }
+                    
+                    // Rotate camera around the bars like official version
+                    this.cameraPivot.rotation.y += 0.01;
+                    data.renderer.render(this.scene, this.camera);
+                }
+
+                onResize(data) {
+                    this.camera.aspect = data.width / data.height;
+                    this.camera.updateProjectionMatrix();
+                }
+
+                onDestroy() {
+                    delete this.scene;
+                    delete this.camera;
+                    delete this.bars;
+                }
+            }
 
             // Starting Akko and adding multiple visualisers
             var akko = new Akko({
@@ -510,11 +589,72 @@
                 useDefaultVisualisers: false,
             });
             
-            // Add all our custom visualizers
-            akko.addVisualiser(new CustomVisualiser());
-            akko.addVisualiser(new WaveVisualiser());
-            akko.addVisualiser(new SphereVisualiser());
-            akko.addVisualiser(new BarsVisualiser());
+            // Add all our custom visualizers with error handling
+            try {
+                console.log('Adding CustomVisualiser...');
+                akko.addVisualiser(new CustomVisualiser());
+                console.log('✅ CustomVisualiser added');
+            } catch (e) {
+                console.error('❌ CustomVisualiser failed:', e);
+            }
+            
+            try {
+                console.log('Adding WaveVisualiser...');
+                var waveVis = new WaveVisualiser();
+                console.log('WaveVisualiser created:', waveVis);
+                akko.addVisualiser(waveVis);
+                console.log('✅ WaveVisualiser added');
+            } catch (e) {
+                console.error('❌ WaveVisualiser failed:', e);
+            }
+            
+            try {
+                console.log('Adding SphereVisualiser...');
+                akko.addVisualiser(new SphereVisualiser());
+                console.log('✅ SphereVisualiser added');
+            } catch (e) {
+                console.error('❌ SphereVisualiser failed:', e);
+            }
+            
+            try {
+                console.log('Adding BarsVisualiser...');
+                var barsVis = new BarsVisualiser();
+                console.log('BarsVisualiser created:', barsVis);
+                akko.addVisualiser(barsVis);
+                console.log('✅ BarsVisualiser added');
+            } catch (e) {
+                console.error('❌ BarsVisualiser failed:', e);
+            }
+            
+            // Check what visualizers are available
+            setTimeout(function() {
+                console.log('Available visualizers after 2 seconds:');
+                console.log('Akko object keys:', Object.keys(akko));
+                
+                // Try different property names
+                var visualizers = akko.visualisers || akko.visualizers || akko._visualisers || akko._visualizers;
+                if (visualizers) {
+                    console.log('Visualizer count:', visualizers.length);
+                    visualizers.forEach(function(vis, index) {
+                        console.log(index + ':', vis.name || vis.constructor.name, vis.code);
+                    });
+                } else {
+                    console.log('No visualizers found. Trying to inspect akko object...');
+                    // Check visCore for visualizers
+                    if (akko.visCore && akko.visCore.visualisers) {
+                        console.log('Found visualizers in visCore:', akko.visCore.visualisers.length);
+                        akko.visCore.visualisers.forEach(function(vis, index) {
+                            console.log(index + ':', vis.name, vis.code, 'initialized:', vis.initialised);
+                        });
+                    }
+                    
+                    for (var prop in akko) {
+                        if (Array.isArray(akko[prop]) && akko[prop].length > 0) {
+                            console.log('Found array property:', prop, 'with', akko[prop].length, 'items');
+                        }
+                    }
+                }
+            }, 2000);
             akko.addTrack('/mixer/audio/Fatal Force - Fan Girls.mp3');
             akko.addTrack('/mixer/audio/Computer Music All-Stars - Albatross v2.mp3');
             akko.start();
