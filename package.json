@@ -1,0 +1,14 @@
+{
+  "name": "muizenmesh",
+  "version": "1.0.0",
+  "description": "MuizenMesh online community network",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step needed - static site'",
+    "deploy": "netlify deploy",
+    "deploy:prod": "netlify deploy --prod"
+  },
+  "keywords": ["static-site", "community", "netlify"],
+  "author": "MuizenMesh",
+  "license": "MIT"
+}

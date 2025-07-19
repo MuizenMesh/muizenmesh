@@ -1,5 +1,6 @@
 [build]
   publish = "."
+  command = "echo 'No build step needed - static site'"
   
 # Redirect old URLs to new locations
 [[redirects]]

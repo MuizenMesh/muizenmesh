@@ -1,4 +1,7 @@
-particlesJS("particles-js", {
+// Wait for DOM and particlesJS to be ready
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof particlesJS !== 'undefined') {
+    particlesJS("particles-js", {
   "particles": {
     "number": {
       "value": 80,
@@ -48,8 +51,8 @@ particlesJS("particles-js", {
       "enable": true,
       "distance": 176.37479644244019,
       "color": "#ffffff",
-      "opacity": 0.2805962670675185,
-      "width": 1.4430665163472378
+      "opacity": 0.4,
+      "width": 2
     },
     "move": {
       "enable": true,
@@ -106,6 +109,10 @@ particlesJS("particles-js", {
     }
   },
   "retina_detect": true
+});
+  } else {
+    console.error('particlesJS library not loaded');
+  }
 });
 // Stats functionality removed - was causing errors due to missing Stats.js library
 // Particles.js will work fine without the stats display

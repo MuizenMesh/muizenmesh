@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Particles Test</title>
+    <style>
+        #particles-js { 
+            width: 100vw; 
+            height: 100vh; 
+            background: #222;
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <script src="/js/particles.min.js"></script>
+    <script>
+        console.log('particlesJS available:', typeof particlesJS);
+        
+        particlesJS("particles-js", {
+            particles: {
+                number: { value: 50 },
+                color: { value: "#ffffff" },
+                shape: { type: "circle" },
+                opacity: { value: 0.8 },
+                size: { value: 4 },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#ffffff",
+                    opacity: 0.6,
+                    width: 1
+                },
+                move: { enable: true, speed: 2 }
+            },
+            interactivity: {
+                events: {
+                    onhover: { enable: true, mode: "grab" },
+                    onclick: { enable: true, mode: "push" }
+                }
+            },
+            retina_detect: true
+        });
+        
+        setTimeout(() => {
+            const canvas = document.querySelector('#particles-js canvas');
+            console.log('Canvas found:', !!canvas);
+            if (canvas) {
+                console.log('Canvas size:', canvas.width, 'x', canvas.height);
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

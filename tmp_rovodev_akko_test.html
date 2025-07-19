@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Akko Isolation Test</title>
+</head>
+<body>
+    <h1>Akko Loading Test</h1>
+    <div id="log"></div>
+    
+    <script>
+        function log(msg) {
+            console.log(msg);
+            document.getElementById('log').innerHTML += '<br>' + msg;
+        }
+        
+        log('Starting Akko test...');
+        log('Initial Akko: ' + typeof Akko);
+    </script>
+    
+    <script src="/mixer/dist/akko.min.js"></script>
+    
+    <script>
+        log('After loading akko.min.js:');
+        log('typeof Akko: ' + typeof Akko);
+        log('typeof window.Akko: ' + typeof window.Akko);
+        
+        // Check all window properties
+        let akkoProps = [];
+        for (let prop in window) {
+            if (prop.toLowerCase().includes('akko')) {
+                akkoProps.push(prop + ': ' + typeof window[prop]);
+            }
+        }
+        log('Akko-related properties: ' + (akkoProps.length ? akkoProps.join(', ') : 'none'));
+        
+        // Try to find any constructor functions
+        let constructors = [];
+        for (let prop in window) {
+            if (typeof window[prop] === 'function' && window[prop].toString().includes('function')) {
+                let str = window[prop].toString();
+                if (str.includes('Akko') || str.includes('visualiser') || str.includes('audio')) {
+                    constructors.push(prop);
+                }
+            }
+        }
+        log('Potential constructors: ' + constructors.join(', '));
+    </script>
+</body>
+</html>

@@ -5,39 +5,292 @@
         <title>Custom visualiser example (ES5 version) | Akko Music Visualising Framework</title>
 
         <!-- Make the page look a bit nicer (this does not affect Akko) -->
-        <link rel="stylesheet" href="./css/prettify.css"/>
+        <link rel="stylesheet" href="/mixer/css/prettify.css"/>
 
         <!-- Akko CSS -->
-        <link rel="stylesheet" href="./dist/akko.min.css"/>
+        <link rel="stylesheet" href="/mixer/dist/akko.min.css"/>
 
-        <!-- Preparing Akko container for displaying inline -->
+        <!-- Modern Mixer Styling -->
         <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+                color: #ffffff;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                min-height: 100vh;
+                overflow-x: hidden;
+            }
+            
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            
+            .header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding: 40px 0;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 20px;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .header h1 {
+                font-size: 3.5rem;
+                font-weight: 700;
+                background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+                background-size: 400% 400%;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                animation: gradientShift 4s ease-in-out infinite;
+                margin-bottom: 10px;
+            }
+            
+            @keyframes gradientShift {
+                0%, 100% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+            }
+            
+            .header p {
+                font-size: 1.2rem;
+                opacity: 0.8;
+                line-height: 1.6;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+            
+            .visualizer-container {
+                background: rgba(0, 0, 0, 0.4);
+                border-radius: 20px;
+                padding: 30px;
+                margin-bottom: 30px;
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .visualizer-container::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(45deg, rgba(255, 107, 107, 0.1), rgba(78, 205, 196, 0.1), rgba(69, 183, 209, 0.1));
+                pointer-events: none;
+                animation: pulseGlow 3s ease-in-out infinite;
+            }
+            
+            @keyframes pulseGlow {
+                0%, 100% { opacity: 0.3; }
+                50% { opacity: 0.6; }
+            }
+            
             #akko {
-                height: 500px;
+                height: 600px;
+                border-radius: 15px;
+                overflow: hidden;
+                position: relative;
+                z-index: 1;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            .controls-info {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+                margin-top: 30px;
+            }
+            
+            .info-card {
+                background: rgba(255, 255, 255, 0.05);
+                padding: 25px;
+                border-radius: 15px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(5px);
+            }
+            
+            .info-card h3 {
+                color: #4ecdc4;
+                margin-bottom: 15px;
+                font-size: 1.3rem;
+            }
+            
+            .info-card ul {
+                list-style: none;
+                padding: 0;
+            }
+            
+            .info-card li {
+                padding: 8px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                opacity: 0.8;
+            }
+            
+            .info-card li:last-child {
+                border-bottom: none;
+            }
+            
+            .feature-highlight {
+                background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(78, 205, 196, 0.2));
+                padding: 20px;
+                border-radius: 15px;
+                margin: 30px 0;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                text-align: center;
+            }
+            
+            .feature-highlight strong {
+                color: #ff6b6b;
+            }
+            
+            /* Responsive Design */
+            @media (max-width: 768px) {
+                .container {
+                    padding: 15px;
+                }
+                
+                .header h1 {
+                    font-size: 2.5rem;
+                }
+                
+                .controls-info {
+                    grid-template-columns: 1fr;
+                    gap: 20px;
+                }
+                
+                #akko {
+                    height: 400px;
+                }
+                
+                .visualizer-container {
+                    padding: 20px;
+                }
+            }
+            
+            /* Loading animation for when Akko is initializing */
+            .loading {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 200px;
+                font-size: 1.2rem;
+                opacity: 0.7;
+            }
+            
+            .loading::after {
+                content: '';
+                width: 20px;
+                height: 20px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-top: 2px solid #4ecdc4;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-left: 10px;
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
             }
         </style>
 
     </head>
     <body>
+        <div class="container">
+            <div class="header">
+                <h1>MuizenMixer</h1>
+                <p>Experience music through stunning 3D visualizations. Drop your tracks into our browser-based Akko visualizer and watch your audio come to life with interactive, real-time graphics.</p>
+            </div>
 
-    <h1>>Welcome to MuizenMixer.</h1>
+            <div class="visualizer-container">
+                <div id="akko"></div>
+            </div>
 
-  
-    <p>We want you to create a remix and share culture. The idea will be to upload and share tracks under a community contract. (Calling it a license just gets our regulators into a tizz!)</p>
-    <p>Until then you can drop your own tracks into the browser-based Akko visualiser, but obviously they do not persist on our server.</p>
+            <div class="feature-highlight">
+                <p><strong>Interactive Experience:</strong> Hover over the visualization to grab particles, click to add more, and watch as your music transforms into beautiful 3D art.</p>
+            </div>
 
-</p>
-<!-- Akk
+            <div class="controls-info">
+                <div class="info-card">
+                    <h3>🎵 How to Use</h3>
+                    <ul>
+                        <li>Click play to start the demo tracks</li>
+                        <li>Drag and drop your own audio files</li>
+                        <li>Hover over the visualization to interact</li>
+                        <li>Click to add more visual elements</li>
+                        <li>Enjoy the real-time audio-reactive graphics</li>
+                    </ul>
+                </div>
+                
+                <div class="info-card">
+                    <h3>🎨 Visual Features</h3>
+                    <ul>
+                        <li>Real-time 3D cube visualization</li>
+                        <li>Color-coded frequency analysis</li>
+                        <li>Interactive particle system</li>
+                        <li>Responsive to audio dynamics</li>
+                        <li>Smooth WebGL rendering</li>
+                    </ul>
+                </div>
+            </div>
 
-        <!-- Akko's container -->
-        <div id="akko"></div>
+            <div class="feature-highlight">
+                <p>🚀 <strong>Coming Soon:</strong> Upload and share your remixes with the community under our collaborative culture contract!</p>
+            </div>
+        </div>
 
         <!-- Akko's dependencies -->
         <script src="https://cdn.jsdelivr.net/bluebird/latest/bluebird.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/86/three.min.js"></script>
 
-        <!-- Akko JS -->
-        <script src="./dist/akko.js"></script>
+        <!-- Debug dependencies -->
+        <script>
+            console.log('Dependencies loaded:');
+            console.log('- Promise/Bluebird:', typeof Promise);
+            console.log('- THREE.js:', typeof THREE);
+        </script>
+
+        <!-- Load Akko with proper error handling -->
+        <script>
+            // Clear any existing module system
+            delete window.module;
+            delete window.exports;
+            delete window.require;
+        </script>
+        <script src="/mixer/dist/akko.min.js" onerror="console.error('Failed to load akko.min.js')"></script>
+        <script>
+            console.log('After akko.min.js - Akko:', typeof Akko);
+            console.log('Window keys containing akko:', Object.keys(window).filter(k => k.toLowerCase().includes('akko')));
+            
+            // Check if it's in a different location
+            if (typeof Akko === 'undefined') {
+                console.log('Checking window object for Akko...');
+                for (let key in window) {
+                    if (key.toLowerCase().includes('akko') || (typeof window[key] === 'function' && window[key].toString().includes('Akko'))) {
+                        console.log('Found potential Akko at window.' + key + ':', typeof window[key]);
+                    }
+                }
+            }
+        </script>
+
+        <!-- Debug Akko loading -->
+        <script>
+            console.log('Akko loaded:', typeof Akko);
+            if (typeof Akko === 'undefined') {
+                console.error('❌ Akko failed to load!');
+                alert('Akko framework failed to load. Check console for errors.');
+            }
+        </script>
 
         <!-- Defining our visualiser and starting Akko -->
         <script>
@@ -93,8 +346,8 @@
                 useDefaultVisualisers: false,
             });
             akko.addVisualiser(new CustomVisualiser());
-            akko.addTrack('./audio/Fatal Force - Fan Girls.mp3');
-            akko.addTrack('./audio/Computer Music All-Stars - Albatross v2.mp3');
+            akko.addTrack('/mixer/audio/Fatal Force - Fan Girls.mp3');
+            akko.addTrack('/mixer/audio/Computer Music All-Stars - Albatross v2.mp3');
             akko.start();
         </script>
 

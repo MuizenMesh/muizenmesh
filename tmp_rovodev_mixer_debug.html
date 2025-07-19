@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mixer Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #debug { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+        #akko { height: 300px; border: 2px solid #ccc; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Mixer Debug Test</h1>
+    <div id="debug">Loading dependencies...</div>
+    <div id="akko"></div>
+    
+    <script>
+        console.log('1. Starting mixer debug...');
+        document.getElementById('debug').innerHTML += '<br>1. Starting debug...';
+    </script>
+    
+    <!-- Akko's dependencies -->
+    <script src="https://cdn.jsdelivr.net/bluebird/latest/bluebird.min.js"></script>
+    <script>
+        console.log('2. Bluebird loaded:', typeof Promise);
+        document.getElementById('debug').innerHTML += '<br>2. Bluebird: ' + typeof Promise;
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/86/three.min.js"></script>
+    <script>
+        console.log('3. Three.js loaded:', typeof THREE);
+        document.getElementById('debug').innerHTML += '<br>3. Three.js: ' + typeof THREE;
+    </script>
+    
+    <!-- Akko JS -->
+    <script src="/mixer/dist/akko.js"></script>
+    <script>
+        console.log('4. Akko loaded:', typeof Akko);
+        document.getElementById('debug').innerHTML += '<br>4. Akko: ' + typeof Akko;
+        
+        if (typeof Akko !== 'undefined') {
+            console.log('5. Initializing Akko...');
+            document.getElementById('debug').innerHTML += '<br>5. Initializing Akko...';
+            
+            try {
+                var akko = new Akko({
+                    autoPlay: false,
+                    useDefaultVisualisers: true,
+                });
+                akko.start();
+                console.log('✅ Akko initialized successfully!');
+                document.getElementById('debug').innerHTML += '<br>✅ Akko working!';
+            } catch (error) {
+                console.error('❌ Akko error:', error);
+                document.getElementById('debug').innerHTML += '<br>❌ Akko error: ' + error.message;
+            }
+        } else {
+            console.error('❌ Akko not loaded');
+            document.getElementById('debug').innerHTML += '<br>❌ Akko not loaded';
+        }
+    </script>
+</body>
+</html>
