@@ -4,12 +4,11 @@
  * @license GPL-3.0
  */
 
-const THREE = require('three');
-const Visualiser = require('../Visualiser');
+
 
 const BAR_COUNT = 32;
 
-class BarVisualiser extends Visualiser {
+class BarVisualiser extends Akko.Visualiser {
 
     constructor() {
         super({

@@ -4,12 +4,11 @@
  * @license GPL-3.0
  */
 
-const THREE = require('three');
-const Visualiser = require('../Visualiser');
+
 
 const RING_COUNT = 16;
 
-class RingVisualiser extends Visualiser {
+class RingVisualiser extends Akko.Visualiser {
 
     constructor() {
         super({

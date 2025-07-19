@@ -1,5 +1,5 @@
             // Frequency Bars Visualizer based on official Akko BarVisualiser
-            class CustomBarsVisualiser extends Akko.Visualiser {
+            class BarsVisualiser extends Akko.Visualiser {
                 constructor() {
                     super({
                         code: 'Br',
