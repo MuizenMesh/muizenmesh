@@ -5,52 +5,304 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <title>Gallery - MuizenMesh</title>
-    <meta name="description" content="MuizenMesh Gallery - Coming Soon" />
+    <title>Dawn Patrol - MuizenMesh</title>
+    <meta name="description" content="Dawn Patrol - MuizenMesh photo collection of community moments and memories" />
     
     <link rel="shortcut icon" href="/images/favicon.ico" />
     <link rel="stylesheet" type="text/css" href="/css/screen.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css">
+    
+    <style>
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+        
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: #fff;
+        }
+        
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+        
+        .gallery-item-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            color: white;
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .gallery-item:hover .gallery-item-overlay {
+            transform: translateY(0);
+        }
+        
+        .gallery-categories {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .category-filter {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 16px;
+            background: rgba(74, 74, 74, 0.1);
+            border: 1px solid #4A4A4A;
+            border-radius: 20px;
+            color: #4A4A4A;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .category-filter:hover,
+        .category-filter.active {
+            background: #4A4A4A;
+            color: white;
+        }
+        
+        .gallery-placeholder {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .upload-info {
+            background: rgba(135, 206, 235, 0.1);
+            border: 1px solid rgba(135, 206, 235, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+            
+            .gallery-item img {
+                height: 200px;
+            }
+        }
+    </style>
 </head>
 
 <body class="nav-closed">
+<div id="particles-js"></div>
 <div class="site-wrapper">
+    <!-- Navigation Drawer -->
+    <div class="nav">
+        <h3 class="nav-title">Menu</h3>
+        <a href="#" class="nav-close">
+            <span class="hidden">Close</span>
+        </a>
+        <ul>
+            <li class="nav-item" role="presentation">
+                <a href="/info.html">Info</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a href="/mixer">Mixer</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a href="/gallery">Dawn Patrol</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a href="https://discord.gg/muizenmesh">Discord</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a href="mailto:info@muizenmesh.co.za">Contact</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a href="https://github.com/muizenmesh">GitHub</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a href="https://poe.com/MuizenGPT">GPT</a>
+            </li>
+        </ul>
+    </div>
+    
+    <span class="nav-cover"></span>
+
     <header class="main-header" style="background-image: url(/images/screen.jpg)">
         <nav class="main-nav overlay clearfix">
-            <a class="blog-logo" href="/"><img src="/images/logo.gif" alt="MuizenMesh Logo"></a>
-            <a class="menu-button" href="/">← Back to Home</a>
+            <a class="blog-logo" id="div-desktop" href="/"><img src="/images/logo.gif" alt="MuizenMesh Logo"></a>
+            
+            <!-- Desktop Menu Items (shown on large screens) -->
+            <div class="desktop-menu-items">
+                <a class="menu-button" href="/mixer">Mixer</a>
+                <a class="menu-button" href="/gallery">Dawn Patrol</a>
+                <a class="menu-button" href="https://discord.gg/muizenmesh">Discord</a>
+                <a class="menu-button" href="https://github.com/muizenmesh">GitHub</a>
+                <a class="menu-button" href="https://poe.com/MuizenGPT">GPT</a>
+            </div>
+            
+            <!-- Burger Menu Dropdown -->
+            <div class="burger-menu-container">
+                <a class="menu-button burger-toggle" href="#"><span class="burger">&#9776;</span><span class="word">Menu</span></a>
+                
+                <!-- Dropdown Menu -->
+                <div class="burger-dropdown">
+                    <div class="menu-section">
+                        <h4>Info</h4>
+                        <a href="/info.html">About</a>
+                        <a href="mailto:info@muizenmesh.co.za">Contact</a>
+                        <a href="/freesites.html">Free Sites</a>
+                        <a href="/privacy.html">Privacy</a>
+                        <a href="/terms.html">Terms</a>
+                    </div>
+                    <div class="menu-section">
+                        <h4>Navigate</h4>
+                        <a href="/mixer">Mixer</a>
+                        <a href="/gallery">Dawn Patrol</a>
+                        <a href="https://discord.gg/muizenmesh">Discord</a>
+                        <a href="https://github.com/muizenmesh">GitHub</a>
+                        <a href="https://poe.com/MuizenGPT">GPT</a>
+                    </div>
+                </div>
+            </div>
         </nav>
         
         <div class="vertical">
             <div class="main-header-content inner">
-                <h1 class="page-title">Gallery</h1>
-                <h2 class="page-description">Coming Soon</h2>
+                <h1 class="page-title">Dawn Patrol</h1>
+                <h2 class="page-description">Community moments and memories</h2>
             </div>
         </div>
     </header>
 
-    <main class="content" role="main">
+    <main class="content" role="main" style="flex: 1; min-height: 200px;">
         <div class="inner">
-            <article class="post">
-                <div class="post-content">
-                    <h2>Gallery Migration in Progress</h2>
-                    <p>We're currently migrating our photo gallery to a new, faster platform. The gallery will be back online soon with improved performance and mobile-friendly design.</p>
-                    
-                    <p>In the meantime, you can:</p>
-                    <ul>
-                        <li><a href="/mixer">Check out our Music Mixer</a></li>
-                        <li><a href="https://discord.gg/muizenmesh">Join our Community</a></li>
-                        <li><a href="mailto:info@muizenmesh.co.za">Contact us</a> if you need access to specific photos</li>
-                    </ul>
+            <div class="upload-info">
+                <h3>📸 Share Your Photos!</h3>
+                <p>Want to add your photos to the MuizenMesh gallery? <a href="mailto:info@muizenmesh.co.za">Send them to us</a> or share them in our <a href="https://discord.gg/muizenmesh">Discord community</a>!</p>
+            </div>
+            
+            <div class="gallery-categories">
+                <a href="#" class="category-filter active" data-category="all">All Photos</a>
+                <a href="#" class="category-filter" data-category="events">Events</a>
+                <a href="#" class="category-filter" data-category="community">Community</a>
+                <a href="#" class="category-filter" data-category="projects">Projects</a>
+                <a href="#" class="category-filter" data-category="meetups">Meetups</a>
+            </div>
+
+            <!-- Gallery Grid -->
+            <div class="gallery-grid">
+                <div class="gallery-item" data-category="community">
+                    <a href="/gallery/images/muizenberghuts.jpeg" data-lightbox="gallery" data-title="Muizenberg Beach Huts">
+                        <img src="/gallery/images/muizenberghuts.jpeg" alt="Colorful beach huts at Muizenberg">
+                        <div class="gallery-item-overlay">
+                            <h4>Muizenberg Beach Huts</h4>
+                            <p>Iconic colorful beach huts of Cape Town</p>
+                        </div>
+                    </a>
                 </div>
-            </article>
+                
+                <div class="gallery-item" data-category="events">
+                    <a href="/gallery/images/free-the-beach.jpeg" data-lightbox="gallery" data-title="Free the Beach Event">
+                        <img src="/gallery/images/free-the-beach.jpeg" alt="Free the Beach community event">
+                        <div class="gallery-item-overlay">
+                            <h4>Free the Beach</h4>
+                            <p>Community beach cleanup and awareness event</p>
+                        </div>
+                    </a>
+                </div>
+                
+                <div class="gallery-item" data-category="projects">
+                    <a href="/images/screen.jpg" data-lightbox="gallery" data-title="MuizenMesh Platform">
+                        <img src="/images/screen.jpg" alt="MuizenMesh platform interface">
+                        <div class="gallery-item-overlay">
+                            <h4>Our Platform</h4>
+                            <p>The MuizenMesh community network</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="gallery-placeholder" style="margin-top: 40px;">
+                <h3>📸 Add Your Photos!</h3>
+                <p><strong>Want to contribute?</strong> <a href="mailto:info@muizenmesh.co.za">Email us your photos</a> or join our <a href="https://discord.gg/muizenmesh">Discord</a>!</p>
+            </div>
         </div>
     </main>
 
     <footer class="site-footer clearfix">
-        <section class="copyright"><a href="/">MuizenMesh</a> All rights reserved - 2020-2024</section>
+        <section class="copyright"><a href="/">MuizenMesh</a> All rights reserved - 2020-<span id="current-year">2024</span></section>
+        <section class="flattr"><a href="https://flattr.com/@ubuntupunk">flattr us</a></section>
         <section class="poweredby">Proudly generated by <a href="https://netbones.co.za">NetBones</a></section>
     </footer>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
+<script src="/js/particles.min.js"></script>
+<script src="/js/particles.js"></script>
+<script>
+$(document).ready(function() {
+    // Auto-update copyright year
+    var currentYear = new Date().getFullYear();
+    $("#current-year").text(currentYear);
+    
+    // Menu toggle functionality
+    $(".menu-button[href='#'], .nav-cover, .nav-close").on("click", function(e){
+        e.preventDefault();
+        $("body").toggleClass("nav-opened nav-closed");
+    });
+    
+    // Category filter functionality
+    $('.category-filter').on('click', function(e) {
+        e.preventDefault();
+        
+        // Update active state
+        $('.category-filter').removeClass('active');
+        $(this).addClass('active');
+        
+        var category = $(this).data('category');
+        
+        // Filter gallery items (when we have actual images)
+        if (category === 'all') {
+            $('.gallery-item').show();
+        } else {
+            $('.gallery-item').hide();
+            $('.gallery-item[data-category="' + category + '"]').show();
+        }
+    });
+    
+    // Lightbox configuration
+    lightbox.option({
+        'resizeDuration': 200,
+        'wrapAround': true,
+        'albumLabel': "Image %1 of %2"
+    });
+});
+</script>
 </body>
 </html>

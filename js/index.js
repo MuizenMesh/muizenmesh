@@ -15,14 +15,22 @@
 
         $(".scroll-down, .title-scroll").arctic_scroll();
 
-        $(".menu-button[href='#'], .nav-cover, .nav-close").on("click", function(e){
-            e.preventDefault();
-            $("body").toggleClass("nav-opened nav-closed");
-        });
-
         // Auto-update copyright year
         var currentYear = new Date().getFullYear();
         $("#current-year").text(currentYear);
+        
+        // Burger menu dropdown functionality (mobile click)
+        $('.burger-toggle').on('click', function(e) {
+            e.preventDefault();
+            $(this).parent('.burger-menu-container').toggleClass('open');
+        });
+        
+        // Close dropdown when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.burger-menu-container').length) {
+                $('.burger-menu-container').removeClass('open');
+            }
+        });
 
     });
 

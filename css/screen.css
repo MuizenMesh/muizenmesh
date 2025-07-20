@@ -1849,34 +1849,197 @@ body:not(.post-template) .post-title {
    11. Media Queries - Smaller than 500px
    ========================================================================== */
 
-/* Desktop menu behavior */
+/* Dropdown Menu Styles */
+.menu-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: rgba(74, 74, 74, 0.95);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 3px;
+    min-width: 160px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.menu-dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: block;
+    padding: 8px 15px;
+    color: #E0E0E0;
+    text-decoration: none;
+    font-size: 11px;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+.dropdown-arrow {
+    font-size: 8px;
+    margin-left: 5px;
+    transition: transform 0.3s ease;
+}
+
+.menu-dropdown:hover .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+/* Mobile Navigation Dropdown */
+.nav-dropdown-toggle {
+    cursor: pointer;
+}
+
+.nav-arrow {
+    font-size: 10px;
+    margin-left: 5px;
+    transition: transform 0.3s ease;
+}
+
+.nav-dropdown.open .nav-arrow {
+    transform: rotate(180deg);
+}
+
+.nav-dropdown-menu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    padding-left: 20px;
+    list-style: none;
+}
+
+.nav-dropdown.open .nav-dropdown-menu {
+    max-height: 200px;
+}
+
+.nav-dropdown-menu li {
+    margin: 0;
+}
+
+.nav-dropdown-menu a {
+    font-size: 1.1rem;
+    padding: 0.4rem 4%;
+    color: #A0A0A0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.nav-dropdown-menu a:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+}
+
+/* Burger Menu Container */
+.burger-menu-container {
+    position: relative;
+    display: inline-block;
+}
+
+.burger-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: rgba(74, 74, 74, 0.95);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 3px;
+    min-width: 280px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 15px;
+}
+
+.burger-menu-container:hover .burger-dropdown,
+.burger-menu-container.open .burger-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.menu-section h4 {
+    color: #fff;
+    font-size: 12px;
+    text-transform: uppercase;
+    margin: 0 0 10px 0;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.menu-section a {
+    display: block;
+    padding: 6px 0;
+    color: #E0E0E0;
+    text-decoration: none;
+    font-size: 11px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.menu-section a:hover {
+    color: #fff;
+    padding-left: 5px;
+}
+
+/* Desktop vs Mobile Behavior */
 @media only screen and (min-width: 769px) {
-    /* On desktop, show horizontal menu items */
-    .menu-button.desktop-only {
+    /* Desktop: Show expanded menu items, burger as backup */
+    .desktop-menu-items {
         display: inline-block;
     }
     
-    /* Hide burger menu on desktop when nav is closed */
-    body.nav-closed .menu-button:first-child {
+    .burger-menu-container {
         display: inline-block;
+        margin-left: 10px;
     }
     
-    /* When nav is open on desktop, hide horizontal menu items */
-    body.nav-opened .menu-button.desktop-only {
-        display: none;
+    /* On desktop, burger dropdown works on hover */
+    .burger-dropdown {
+        display: grid;
     }
 }
 
-/* Mobile menu behavior */
 @media only screen and (max-width: 768px) {
-    /* On mobile, always hide horizontal menu items */
-    .menu-button.desktop-only {
-        display: none !important;
+    /* Mobile: Hide desktop items, show only burger */
+    .desktop-menu-items {
+        display: none;
     }
     
-    /* Show burger menu on mobile */
-    .menu-button:first-child {
+    .burger-menu-container {
         display: inline-block;
+    }
+    
+    /* On mobile, burger dropdown works on click */
+    .burger-dropdown {
+        display: grid;
+        grid-template-columns: 1fr;
+        min-width: 200px;
     }
 }
 
