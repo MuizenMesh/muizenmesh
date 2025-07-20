@@ -516,7 +516,7 @@ body.nav-opened .site-wrapper {
 
 .main-nav {
     position: relative;
-    z-index: 100;
+    z-index: 400;
     padding: 35px 40px;
     margin: 0 0 100px 0;
 }
@@ -541,7 +541,7 @@ body.nav-opened .nav-cover {
     top: 0;
     right: 0;
     bottom: 0;
-    z-index: 5;
+    z-index: 250;
     width: 240px;
     opacity: 0;
     background: #111;
@@ -559,9 +559,9 @@ color: #909090;
 }
 
 body.nav-closed .nav {
-    -webkit-transform: translate3D(97px, 0, 0);
-        -ms-transform: translate3D(97px, 0, 0);
-            transform: translate3D(97px, 0, 0);
+    -webkit-transform: translate3D(240px, 0, 0);
+        -ms-transform: translate3D(240px, 0, 0);
+            transform: translate3D(240px, 0, 0);
 }
 
 body.nav-opened .nav {
@@ -659,6 +659,7 @@ body.nav-opened .nav {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    color: #B8B8B8;
 }
 .nav li a:after {
     display: inline-block;
@@ -674,6 +675,17 @@ body.nav-opened .nav {
     border-bottom: rgba(255,255,255,0.5) 1px solid;
     width: 100%;
     height: 1px;
+}
+
+/* Ensure nav items are visible */
+.nav .nav-item {
+    display: block;
+}
+.nav .nav-item a {
+    color: #B8B8B8;
+}
+.nav .nav-item a:hover {
+    color: #fff;
 }
 
 .nav a:link,
@@ -880,6 +892,9 @@ body.nav-opened .nav {
     border-radius: 3px;
     background: rgba(0,0,0,0.1);
     transition: all 0.5s ease;
+    position: relative;
+    z-index: 500;
+    cursor: pointer;
 }
 .menu-button:focus {
     outline: 0;

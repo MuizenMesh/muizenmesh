@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Test</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; background: #f0f0f0; }
+        
+        .menu-button {
+            display: inline-block;
+            float: right;
+            height: 38px;
+            padding: 0 15px;
+            border: #bfc8cd 1px solid;
+            opacity: 1;
+            color: #9EABB3;
+            text-align: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            line-height: 35px;
+            white-space: nowrap;
+            border-radius: 3px;
+            background: rgba(0,0,0,0.1);
+            transition: all 0.5s ease;
+            text-decoration: none;
+            margin-left: 5px;
+        }
+        
+        /* Desktop menu behavior */
+        @media only screen and (min-width: 769px) {
+            .menu-button.desktop-only {
+                display: inline-block;
+            }
+            
+            body.nav-closed .menu-button:first-child {
+                display: inline-block;
+            }
+            
+            body.nav-opened .menu-button.desktop-only {
+                display: none;
+            }
+        }
+
+        /* Mobile menu behavior */
+        @media only screen and (max-width: 768px) {
+            .menu-button.desktop-only {
+                display: none !important;
+            }
+            
+            .menu-button:first-child {
+                display: inline-block;
+            }
+        }
+        
+        body.nav-opened .menu-button {
+            padding: 0 12px;
+            background: #4A4A4A !important;
+            border-color: #4A4A4A !important;
+            color: #fff !important;
+        }
+        
+        .test-area {
+            padding: 20px;
+            margin: 20px;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        .toggle-btn {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="nav-closed">
+    <div class="test-area">
+        <h1>Menu Behavior Test</h1>
+        
+        <div style="background: #333; padding: 20px; margin: 20px 0;">
+            <nav style="overflow: hidden;">
+                <a class="menu-button" href="#" onclick="toggleNav()">☰ Menu</a>
+                <a class="menu-button desktop-only" href="#">Info</a>
+                <a class="menu-button desktop-only" href="#">Contact</a>
+                <a class="menu-button desktop-only" href="#">GitHub</a>
+                <a class="menu-button desktop-only" href="#">Gallery</a>
+                <a class="menu-button desktop-only" href="#">Community</a>
+            </nav>
+        </div>
+        
+        <button class="toggle-btn" onclick="toggleNav()">Toggle Navigation State</button>
+        
+        <div id="status"></div>
+        
+        <h3>Expected Behavior:</h3>
+        <ul>
+            <li><strong>Desktop (>768px):</strong>
+                <ul>
+                    <li>Nav closed: Show burger + all menu items</li>
+                    <li>Nav opened: Show burger only (dark grey background)</li>
+                </ul>
+            </li>
+            <li><strong>Mobile (≤768px):</strong>
+                <ul>
+                    <li>Always show only burger menu</li>
+                    <li>Menu items always hidden</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    
+    <script>
+        function toggleNav() {
+            $("body").toggleClass("nav-opened nav-closed");
+            updateStatus();
+        }
+        
+        function updateStatus() {
+            const isOpen = $("body").hasClass("nav-opened");
+            const screenWidth = window.innerWidth;
+            $("#status").html(`
+                <p><strong>Current State:</strong> ${isOpen ? 'Nav Opened' : 'Nav Closed'}</p>
+                <p><strong>Screen Width:</strong> ${screenWidth}px (${screenWidth > 768 ? 'Desktop' : 'Mobile'})</p>
+                <p><strong>Burger Background:</strong> ${isOpen ? 'Dark Grey (#4A4A4A)' : 'Default'}</p>
+            `);
+        }
+        
+        $(document).ready(function() {
+            updateStatus();
+            $(window).resize(updateStatus);
+        });
+    </script>
+</body>
+</html>
