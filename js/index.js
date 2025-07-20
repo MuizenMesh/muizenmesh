@@ -20,6 +20,10 @@
             $("body").toggleClass("nav-opened nav-closed");
         });
 
+        // Auto-update copyright year
+        var currentYear = new Date().getFullYear();
+        $("#current-year").text(currentYear);
+
     });
 
     // Arctic Scroll by Paul Adam Davis
