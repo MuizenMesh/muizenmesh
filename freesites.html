@@ -1,109 +1,360 @@
 
 <!DOCTYPE html>
 <html lang="en-ZA">
-
 <head>
-  <title>Info</title>
-  <meta charset="utf-8" />
-  
-  <script type="text/javascript">
-    function convert()
-    {
-	  var text=document.getElementById("url").value;
-	  var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-	  var text1=text.replace(exp, "<a href='$1'>$1</a>");
-	  var exp2 =/(^|[^\/])(www\.[\S]+(\b|$))/gim;
-	  document.getElementById("converted_url").innerHTML=text1.replace(exp2, '$1<a target="_blank" href="http://$2">$2</a>');
-    }
-  </script>
-
-
-  </head>
-  
-
-
-<body>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <title>Free Sites - MuizenMesh</title>
+    <meta name="description" content="Zero-rated educational websites in South Africa - Free access to universities, colleges, and learning resources" />
+    
+    <link rel="shortcut icon" href="/images/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="/css/screen.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
+    
     <style>
+        .freesites-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .freesites-content h1 {
+            color: #2C3E50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .freesites-content h2 {
+            color: #34495E;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3498DB;
+            padding-bottom: 5px;
+        }
+        
+        .intro-text {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .intro-text p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .url-converter {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        
+        .url-converter h3 {
+            color: #27AE60;
+            margin-bottom: 15px;
+        }
+        
+        .url-converter textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #BDC3C7;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+        
+        .url-converter textarea:focus {
+            outline: none;
+            border-color: #27AE60;
+        }
+        
+        .convert-btn {
+            background: #27AE60;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+        
+        .convert-btn:hover {
+            background: #229954;
+        }
+        
+        .converted-output {
+            background: #F8F9FA;
+            border: 2px solid #E9ECEF;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            min-height: 50px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .sites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .site-category {
+            background: rgba(255,255,255,0.8);
+            border: 1px solid #E9ECEF;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .site-category h3 {
+            color: #2C3E50;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #3498DB;
+            padding-bottom: 5px;
+        }
+        
+        .site-category ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .site-category li {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: rgba(52, 152, 219, 0.05);
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+        
+        .site-category li:hover {
+            background: rgba(52, 152, 219, 0.1);
+        }
+        
+        .site-category a {
+            color: #2980B9;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .site-category a:hover {
+            color: #1F618D;
+            text-decoration: underline;
+        }
+        
+        .source-credit {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(149, 165, 166, 0.1);
+            border-radius: 5px;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .sites-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    
+    <script type="text/javascript">
+        function convert() {
+            var text = document.getElementById("url").value;
+            var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+            var text1 = text.replace(exp, "<a href='$1' target='_blank'>$1</a>");
+            var exp2 = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
+            document.getElementById("converted_url").innerHTML = text1.replace(exp2, '$1<a target="_blank" href="http://$2">$2</a>');
+        }
+        
+        function clearConverter() {
+            document.getElementById("url").value = "";
+            document.getElementById("converted_url").innerHTML = "";
+        }
+    </script>
+</head>
 
-        body {background-color:powderblue;}
-          h1 {color:slateblue;}
-</style>
-<textarea id="url" Placeholder="Enter Some Text With Links"> 
-<p>Below are a list of websites that are free – there are no data costs associated when viewing these via the Network.</p>
+<body class="nav-closed">
+<div id="particles-js"></div>
+<div class="site-wrapper">
+    <header class="main-header" style="background-image: url(/images/screen.jpg)">
+        <nav class="main-nav overlay clearfix">
+            <a class="blog-logo" id="div-desktop" href="/"><img src="/images/logo.gif" alt="MuizenMesh Logo"></a>
+            
+            <!-- Desktop Menu Items -->
+            <div class="desktop-menu-items">
+                <a class="menu-button" href="/mixer">Mixer</a>
+                <a class="menu-button" href="/gallery">Dawn Patrol</a>
+                <a class="menu-button" href="https://discord.gg/muizenmesh">Discord</a>
+                <a class="menu-button" href="https://github.com/muizenmesh">GitHub</a>
+                <a class="menu-button" href="https://poe.com/MuizenGPT">GPT</a>
+            </div>
+            
+            <!-- Burger Menu Dropdown -->
+            <div class="burger-menu-container">
+                <a class="menu-button burger-toggle" href="#"><span class="burger">&#9776;</span><span class="word">Menu</span></a>
+                
+                <div class="burger-dropdown">
+                    <div class="menu-section">
+                        <h4>Info</h4>
+                        <a href="/info.html">About</a>
+                        <a href="mailto:info@muizenmesh.co.za">Contact</a>
+                        <a href="/freesites.html">Free Sites</a>
+                        <a href="/privacy.html">Privacy</a>
+                        <a href="/terms.html">Terms</a>
+                    </div>
+                    <div class="menu-section">
+                        <h4>Navigate</h4>
+                        <a href="/mixer">Mixer</a>
+                        <a href="/gallery">Dawn Patrol</a>
+                        <a href="https://discord.gg/muizenmesh">Discord</a>
+                        <a href="https://github.com/muizenmesh">GitHub</a>
+                        <a href="https://poe.com/MuizenGPT">GPT</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="vertical">
+            <div class="main-header-content inner">
+                <h1 class="page-title">Free Sites</h1>
+                <h2 class="page-description">Zero-rated educational resources</h2>
+            </div>
+        </div>
+    </header>
 
-<p>Apha ngezantsi ngamakhasi weminatha asimahla, awuhlawuleli kwa ndleko ze data xa uwavula usebenzisa i-Network.</p>
+    <main class="content" role="main" style="flex: 1; min-height: 200px;">
+        <div class="inner">
+            <div class="freesites-content">
+                <div class="intro-text">
+                    <p><strong>English:</strong> Below are websites that are free – there are no data costs associated when viewing these via certain networks in South Africa.</p>
+                    <p><strong>isiXhosa:</strong> Apha ngezantsi ngamakhasi weminatha asimahla, awuhlawuleli kwa ndleko ze data xa uwavula usebenzisa i-Network.</p>
+                </div>
 
-<li>Official Site of the National Institute for Communicable Diseases (NICD) – <a href="https://www.nicd.ac.za">https://www.nicd.ac.za</a> </li>
-<li>Official Site of the South African Government – https://www.gov.za </li>
-<li>Official Site of the Department of Health South Africa – https://www.health.gov.za </li>
-<li>Official Site of the World Health Organization – https://www.who.int </li>
-<li>National Emergency Library – https://www.archive.org/details/nationalemergencylibrary </li>
-<li>Department of Basic Education and Higher Education – https://www.education.gov.za/ </li>
-<li>Boland FET College – http://www.bolandcollege.com/ </li>
-<li>Cape Peninsula University of Technology – http://www.cput.ac.za/ </li>
-<li>Capricorn FET College – http://www.capricorncollege.co.za/ </li>
-<li>Central Johannesburg FET College – http://www.cjc.edu.za/ </li>
-<li>Central University of Technology – http://www.cut.ac.za/ </li>
-<li>Coastal FET College – http://www.coastalkzn.co.za/ </li>
-<li>College of Cape Town – http://www.cct.edu.za/ </li>
-<li>Durban University of Tech – http://www.dut.ac.za/ </li>
-<li>Eastcape Midlands FET College – http://www.emcol.co.za/ </li>
-<li>Ehlanzeni FET College – http://www.ehlanzenicollege.co.za/ </li>
-<li>Ekurhuleni East FET College – http://www.eec.edu.za/ </li>
-<li>Ekurhuleni West FET College – http://www.ewc.edu.za/ </li>
-<li>Elangeni FET College – http://www.efet.co.za/ </li>
-<li>Everything Maths – http://everythingmaths.co.za </li>
-<li>Everything Science – http://everythingscience.co.za </li>
-<li>False Bay FET College – http://www.falsebaycollege.co.za/ </li>
-<li>Flavius Mareka FET College – http://www.flaviusmareka.net/ </li>
-<li>Gert Sibande FET College – https://educonnect.co.za/institutions/institution/gert-sibande-tvet-college/ </li>
-<li>Goldfields FET College – http://goldfieldstvet.edu.za/ </li>
-<li>Ikhala FET College – https://www.ikhala.edu.za/ </li>
-<li>Khan Academy – https://www.khanacademy.org </li>
-<li>King Satha Dalindyebo FET College – http://www.ksdcollege.edu.za/ </li>
-<li>Lephalale FET College – http://leptvetcol.edu.za/ </li>
-<li>Letaba FET College – http://www.letabafet.co.za/ </li>
-<li>Maluti FET College – http://www.malutitvet.co.za/ </li>
-<li>Mangosuthu University of Technology – http://www.mut.ac.za/ </li>
-<li>Mindset – https://learn.mindset.africa/ </li>
-<li>Mopani South East FET College – http://www.mopanicollege.edu.za </li>
-<li>Motheo FET College – https://www.motheotvet.co.za/ </li>
-<li>Nelson Mandela Metropolitan University – https://www.mandela.ac.za/ </li>
-<li>Nkangala FET College – http://www.nkangalafet.edu.za/ </li>
-<li>North West University – http://www.nwu.ac.za/ </li>
-<li>Northern Cape Rural FET College – http://ncrtvet.com/ </li>
-<li>Northlink FET College – http://www.northlink.co.za/ </li>
-<li>Orbit FET College – http://www.orbitcollege.co.za/ </li>
-<li>Rhodes University – http://www.ru.ac.za/ </li>
-<li>Sedibeng FET College – http://www.sedcol.co.za/ </li>
-<li>Sekhukhune FET College – http://www.sekfetcol.org/ </li>
-<li>South Cape FET College – http://www.sccollege.co.za/ </li>
-<li>South West FET College – http://www.swgc.co.za/ </li>
-<li>Stellenbosch University – http://www.sun.ac.za/ </li>
-<li>Taletso FET College – https://taletso.edu.za/ </li>
-<li>Thekwini FET College –http://www.thekwinicollege.co.za/ </li>
-<li>Tshwane North FET College – https://www.tnc.edu.za/ </li>
-<li>Tshwane South FET College – http://www.tsc.edu.za/ </li>
-<li>Tshwane University of Technology – http://www.tut.ac.za/ </li>
-<li>Umfolozo FET College – http://www.umfolozicollege.co.za/ </li>
-<li>University of Cape Town – http://www.uct.ac.za/ </li>
-<li>University of Johannesburg – http://www.uj.ac.za/ </li>
-<li>University of Kwazulu-Natal – http://www.ukzn.ac.za/ </li>
-<li>University of Limpopo – http://www.ul.ac.za/ </li>
-<li>University of Pretoria – https://www.up.ac.za/ </li>
-<li>University of the Free State – http://www.ufs.ac.za/ </li>
-<li>University of the Western Cape – http://www.uwc.ac.za/ </li>
-<li>University of Venda – http://www.univen.ac.za/ </li>
-<li>University of Zululand – http://www.unizulu.ac.za/ </li>
-<li>Vaal University of Technology – http://www.vut.ac.za/ </li>
-<li>Vuselela FET College – http://www.vuselelacollege.co.za/ </li>
-<li>Walter Sisulu University – http://www.wsu.ac.za/</li>
-<li>West Coast FET College – http://www.westcoastcollege.co.za/</li>
-<li>Western College for FET – http://www.westcol.co.za/</li>
+                <div class="url-converter">
+                    <h3>🔗 URL Converter Tool</h3>
+                    <p>Paste text with URLs below and click "Convert" to make them clickable links:</p>
+                    <textarea id="url" placeholder="Enter text with URLs here..."></textarea>
+                    <div>
+                        <button class="convert-btn" onclick="convert()">Convert URLs</button>
+                        <button class="convert-btn" onclick="clearConverter()" style="background: #E74C3C; margin-left: 10px;">Clear</button>
+                    </div>
+                    <div id="converted_url" class="converted-output"></div>
+                </div>
 
-Source: <a href="https://zenzaleni.net">Zenzaleni.net</a>
-</textarea>
-<input type="button" value="Convert" onclick="convert();">
-<p id="converted_url"></p>
+                <h2>🎓 Educational Institutions & Resources</h2>
+                
+                <div class="sites-grid">
+                    <div class="site-category">
+                        <h3>Government & Health</h3>
+                        <ul>
+                            <li><a href="https://www.nicd.ac.za" target="_blank">National Institute for Communicable Diseases (NICD)</a></li>
+                            <li><a href="https://www.gov.za" target="_blank">South African Government</a></li>
+                            <li><a href="https://www.health.gov.za" target="_blank">Department of Health South Africa</a></li>
+                            <li><a href="https://www.who.int" target="_blank">World Health Organization</a></li>
+                            <li><a href="https://www.education.gov.za/" target="_blank">Department of Basic Education and Higher Education</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="site-category">
+                        <h3>Learning Resources</h3>
+                        <ul>
+                            <li><a href="https://www.archive.org/details/nationalemergencylibrary" target="_blank">National Emergency Library</a></li>
+                            <li><a href="http://everythingmaths.co.za" target="_blank">Everything Maths</a></li>
+                            <li><a href="http://everythingscience.co.za" target="_blank">Everything Science</a></li>
+                            <li><a href="https://www.khanacademy.org" target="_blank">Khan Academy</a></li>
+                            <li><a href="https://learn.mindset.africa/" target="_blank">Mindset Learn</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="site-category">
+                        <h3>Universities</h3>
+                        <ul>
+                            <li><a href="http://www.uct.ac.za/" target="_blank">University of Cape Town</a></li>
+                            <li><a href="https://www.up.ac.za/" target="_blank">University of Pretoria</a></li>
+                            <li><a href="http://www.sun.ac.za/" target="_blank">Stellenbosch University</a></li>
+                            <li><a href="http://www.uwc.ac.za/" target="_blank">University of the Western Cape</a></li>
+                            <li><a href="http://www.uj.ac.za/" target="_blank">University of Johannesburg</a></li>
+                            <li><a href="http://www.ukzn.ac.za/" target="_blank">University of Kwazulu-Natal</a></li>
+                            <li><a href="http://www.nwu.ac.za/" target="_blank">North West University</a></li>
+                            <li><a href="http://www.ufs.ac.za/" target="_blank">University of the Free State</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="site-category">
+                        <h3>Universities of Technology</h3>
+                        <ul>
+                            <li><a href="http://www.cput.ac.za/" target="_blank">Cape Peninsula University of Technology</a></li>
+                            <li><a href="http://www.cut.ac.za/" target="_blank">Central University of Technology</a></li>
+                            <li><a href="http://www.dut.ac.za/" target="_blank">Durban University of Technology</a></li>
+                            <li><a href="http://www.mut.ac.za/" target="_blank">Mangosuthu University of Technology</a></li>
+                            <li><a href="http://www.tut.ac.za/" target="_blank">Tshwane University of Technology</a></li>
+                            <li><a href="http://www.vut.ac.za/" target="_blank">Vaal University of Technology</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="site-category">
+                        <h3>TVET Colleges (Western Cape)</h3>
+                        <ul>
+                            <li><a href="http://www.bolandcollege.com/" target="_blank">Boland TVET College</a></li>
+                            <li><a href="http://www.cct.edu.za/" target="_blank">College of Cape Town</a></li>
+                            <li><a href="http://www.falsebaycollege.co.za/" target="_blank">False Bay TVET College</a></li>
+                            <li><a href="http://www.northlink.co.za/" target="_blank">Northlink TVET College</a></li>
+                            <li><a href="http://www.sccollege.co.za/" target="_blank">South Cape TVET College</a></li>
+                            <li><a href="http://www.westcoastcollege.co.za/" target="_blank">West Coast TVET College</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="site-category">
+                        <h3>TVET Colleges (Other Provinces)</h3>
+                        <ul>
+                            <li><a href="http://www.cjc.edu.za/" target="_blank">Central Johannesburg TVET College</a></li>
+                            <li><a href="http://www.coastalkzn.co.za/" target="_blank">Coastal TVET College</a></li>
+                            <li><a href="http://www.sedcol.co.za/" target="_blank">Sedibeng TVET College</a></li>
+                            <li><a href="http://www.thekwinicollege.co.za/" target="_blank">Thekwini TVET College</a></li>
+                            <li><a href="https://www.tnc.edu.za/" target="_blank">Tshwane North TVET College</a></li>
+                            <li><a href="http://www.tsc.edu.za/" target="_blank">Tshwane South TVET College</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="source-credit">
+                    <p>Source: <a href="https://zenzaleni.net" target="_blank">Zenzaleni.net</a></p>
+                    <p><em>Note: Zero-rating availability may vary by network provider. Check with your mobile network operator for current zero-rated sites.</em></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer clearfix">
+        <section class="copyright"><a href="/">MuizenMesh</a> All rights reserved - 2020-<span id="current-year">2024</span></section>
+        <section class="flattr"><a href="https://flattr.com/@ubuntupunk">flattr us</a></section>
+        <section class="poweredby">Proudly generated by <a href="https://netbones.co.za">NetBones</a></section>
+    </footer>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="/js/particles.min.js"></script>
+<script src="/js/particles.js"></script>
+<script src="/js/index.js"></script>
 </body>
 </html>
