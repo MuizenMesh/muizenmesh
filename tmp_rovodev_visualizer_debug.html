@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizer Debug Test</title>
+    <style>
+        body { margin: 0; background: #000; color: #fff; font-family: Arial, sans-serif; }
+        #debug-info { position: absolute; top: 10px; left: 10px; z-index: 1000; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 5px; }
+        #visualizer-container { width: 100vw; height: 100vh; }
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+        .info { color: #74c0fc; }
+    </style>
+</head>
+<body>
+    <div id="debug-info">
+        <h3>Visualizer Debug Console</h3>
+        <div id="log"></div>
+        <button onclick="testVisualizers()">Test All Visualizers</button>
+    </div>
+    <div id="visualizer-container"></div>
+
+    <!-- Load Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Load Akko Framework -->
+    <script src="mixer/lib/Akko.js"></script>
+    
+    <!-- Load existing working visualizers -->
+    <script src="mixer/js/components/BarVisualiser.js"></script>
+    <script src="mixer/js/components/RingVisualiser.js"></script>
+    
+    <!-- Load new visualizers -->
+    <script src="mixer/js/components/DynamicParticleSwarmVisualiser.js"></script>
+    <script src="mixer/js/components/AudioReactiveVoxelGridVisualiser.js"></script>
+    <script src="mixer/js/components/ProceduralLightTunnelVisualiser.js"></script>
+    <script src="mixer/js/components/InterconnectedNodeNetworkVisualiser.js"></script>
+
+    <script>
+        const log = document.getElementById('log');
+        
+        function addLog(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(div);
+            console.log(message);
+        }
+
+        function testVisualizers() {
+            log.innerHTML = '';
+            addLog('Starting visualizer tests...', 'info');
+            
+            // Test if classes exist
+            const visualizers = [
+                'BarVisualiser',
+                'RingVisualiser', 
+                'DynamicParticleSwarmVisualiser',
+                'AudioReactiveVoxelGridVisualiser',
+                'ProceduralLightTunnelVisualiser',
+                'InterconnectedNodeNetworkVisualiser'
+            ];
+            
+            visualizers.forEach(name => {
+                try {
+                    if (window[name]) {
+                        addLog(`✅ ${name} class found`, 'success');
+                        
+                        // Try to create instance
+                        const instance = new window[name]();
+                        addLog(`✅ ${name} instance created successfully`, 'success');
+                        
+                        // Check required methods
+                        const requiredMethods = ['init', 'update', 'resize'];
+                        requiredMethods.forEach(method => {
+                            if (typeof instance[method] === 'function') {
+                                addLog(`✅ ${name}.${method}() method exists`, 'success');
+                            } else {
+                                addLog(`❌ ${name}.${method}() method missing`, 'error');
+                            }
+                        });
+                        
+                    } else {
+                        addLog(`❌ ${name} class not found`, 'error');
+                    }
+                } catch (error) {
+                    addLog(`❌ Error with ${name}: ${error.message}`, 'error');
+                }
+            });
+            
+            // Test Akko framework
+            try {
+                if (window.Akko) {
+                    addLog('✅ Akko framework loaded', 'success');
+                    addLog(`📊 Available visualizers: ${Object.keys(Akko.visualisers).join(', ')}`, 'info');
+                } else {
+                    addLog('❌ Akko framework not loaded', 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Akko framework error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run test when page loads
+        window.addEventListener('load', () => {
+            setTimeout(testVisualizers, 1000);
+        });
+    </script>
+</body>
+</html>
