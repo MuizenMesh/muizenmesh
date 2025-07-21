@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Test</title>
+</head>
+<body>
+    <h1>Direct Access Test</h1>
+    <p>If you can see this page, the server is working correctly.</p>
+    <p>CSS test: <link rel="stylesheet" href="css/style.css"></p>
+    <script>
+        console.log('Direct test page loaded');
+        fetch('./js/components/ES12ParticleSwarm.js')
+            .then(response => {
+                console.log('Fetch response:', response.status, response.headers.get('content-type'));
+                return response.text();
+            })
+            .then(text => {
+                console.log('File content length:', text.length);
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    </script>
+</body>
+</html>

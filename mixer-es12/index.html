@@ -6,7 +6,7 @@
     <title>MuizenMesh Mixer ES12+ - Next-Gen Audio Visualizer</title>
     
     <!-- Custom Mixer Styles -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="./css/style.css">
     
     <style>
         body {
@@ -231,6 +231,9 @@
 
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Akko Framework -->
+    <script src="../Akko/dist/akko.js"></script>
 
     <!-- ES12+ Module Script -->
     <script type="module">
@@ -242,86 +245,66 @@
         const { default: ES12LightTunnel } = await import('./js/components/ES12LightTunnel.js');
         const { default: ES12NodeNetwork } = await import('./js/components/ES12NodeNetwork.js');
         
-        // ES12+ Audio Context Manager with private fields
-        class ES12AudioManager {
-            #audioContext = null;
-            #analyser = null;
-            #dataArray = null;
-            #source = null;
+        // ES12+ Akko Wrapper with modern JavaScript features
+        class ES12AkkoManager {
+            #akkoInstance = null;
+            #isInitialized = false;
             
             constructor() {
-                this.#audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                this.#analyser = this.#audioContext.createAnalyser();
-                this.#analyser.fftSize = 512;
-                this.#dataArray = new Uint8Array(this.#analyser.frequencyBinCount);
+                console.log('🚀 ES12+ Akko Manager initialized');
             }
             
-            // Nullish coalescing and optional chaining
-            getFrequencyData() {
-                this.#analyser?.getByteFrequencyData(this.#dataArray);
-                return this.#dataArray ?? new Uint8Array(256);
+            // Initialize Akko with ES12+ features
+            async init() {
+                try {
+                    // Create Akko instance with modern options
+                    this.#akkoInstance = new Akko({
+                        container: document.getElementById('akko-container'),
+                        autoPlay: true,
+                        useDefaultVisualisers: false, // We'll add our ES12+ visualizers
+                    });
+                    
+                    this.#isInitialized = true;
+                    console.log('✅ Akko framework initialized');
+                } catch (error) {
+                    console.error('❌ Akko initialization failed:', error);
+                    throw error;
+                }
             }
             
-            get isPlaying() {
-                return this.#audioContext?.state === 'running';
-            }
-        }
-        
-        // ES12+ Visualizer Manager
-        class ES12VisualizerManager {
-            #scene = null;
-            #camera = null;
-            #renderer = null;
-            #visualizers = [];
-            #currentVisualizer = 0;
-            #audioManager = null;
-            
-            constructor() {
-                this.#initThreeJS();
-                this.#audioManager = new ES12AudioManager();
-            }
-            
-            #initThreeJS() {
-                this.#scene = new THREE.Scene();
-                this.#camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                this.#renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-                
-                this.#renderer.setSize(window.innerWidth, window.innerHeight);
-                this.#renderer.setClearColor(0x000000, 0);
-                this.#camera.position.z = 50;
-            }
-            
+            // Add ES12+ visualizer with optional chaining
             addVisualizer(visualizer) {
-                this.#visualizers.push(visualizer);
-                visualizer.init?.(this.#scene, this.#camera, this.#renderer);
+                this.#akkoInstance?.addVisualiser?.(visualizer);
             }
             
-            start() {
-                const container = document.getElementById('akko-container');
-                container.appendChild(this.#renderer.domElement);
-                this.#animate();
+            // Add audio tracks with nullish coalescing
+            addTrack(source, title = null) {
+                this.#akkoInstance?.addTrack?.(source, title ?? 'ES12+ Track');
+            }
+            
+            // Start the experience
+            async start() {
+                if (!this.#isInitialized) {
+                    await this.init();
+                }
                 
-                // Keyboard controls
-                document.addEventListener('keydown', (event) => {
-                    const { key } = event;
-                    const num = parseInt(key);
-                    if (num >= 1 && num <= this.#visualizers.length) {
-                        this.#currentVisualizer = num - 1;
-                        console.log(`🎨 Switched to: ${this.#visualizers[this.#currentVisualizer].constructor.name}`);
-                    }
-                    if (key === ' ') {
-                        event.preventDefault();
-                        this.#currentVisualizer = (this.#currentVisualizer + 1) % this.#visualizers.length;
-                    }
-                });
+                // Add demo audio tracks
+                this.addTrack('./audio/Computer Music All-Stars - Albatross v2.mp3', 'Albatross v2');
+                this.addTrack('./audio/Fatal Force - Fan Girls.mp3', 'Fan Girls');
+                
+                // Start Akko
+                this.#akkoInstance?.start?.();
+                
+                console.log('🎵 ES12+ Akko experience started!');
             }
             
-            #animate = () => {
-                requestAnimationFrame(this.#animate);
-                const frequencyData = this.#audioManager.getFrequencyData();
-                const currentViz = this.#visualizers[this.#currentVisualizer];
-                currentViz?.update?.(frequencyData);
-                this.#renderer.render(this.#scene, this.#camera);
+            // Getter for Akko instance
+            get akko() {
+                return this.#akkoInstance;
+            }
+            
+            get isInitialized() {
+                return this.#isInitialized;
             }
         }
         
@@ -339,7 +322,7 @@
             mixerManager.addVisualizer(new ES12LightTunnel());
             mixerManager.addVisualizer(new ES12NodeNetwork());
             
-            mixerManager.start();
+            await mixerManager.start();
             
             console.log('🚀 ES12+ Mixer started!');
             console.log('🎹 Controls: 1-4 keys to switch, Space to cycle');

@@ -1,0 +1,56 @@
+127.0.0.1 - - [21/Jul/2025 10:06:51] "HEAD /mixer-es12/css/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:22:59] "HEAD /mixer-es12/js/components/ES12ParticleSwarm.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:31:43] "GET /mixer-es12/ HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:31:43] "GET /mixer-es12/css/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:31:45] "GET /mixer-es12/js/components/ES12ParticleSwarm.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:31:45] "GET /favicon.ico HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:31:46] "GET /mixer-es12/js/components/ES12VoxelGrid.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:31:46] "GET /mixer-es12/js/components/ES12LightTunnel.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:31:46] "GET /mixer-es12/js/components/ES12NodeNetwork.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:11] "GET /mixer/ HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/css/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/css/prettify.css HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/dist/akko.min.css HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/dist/akko.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/js/components/CustomVisualiser.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/js/components/WaveVisualiser.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/js/components/SphereVisualiser.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/js/components/CustomBarsVisualiser.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/js/components/AudioReactiveVoxelGridVisualiser.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/js/components/DynamicParticleSwarmVisualiser.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/js/components/ProceduralLightTunnelVisualiser.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/js/components/RingVisualiser.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/js/components/BarVisualiser.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/js/components/InterconnectedNodeNetworkVisualiser.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:13] "GET /mixer/js/main.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:14] "GET /favicon.ico HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:39] "GET /mixer/audio/Fatal%20Force%20-%20Fan%20Girls.mp3 HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:33:45] "GET /mixer/audio/Computer%20Music%20All-Stars%20-%20Albatross%20v2.mp3 HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:34:06] "GET /mixer-es12/ HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2025 10:34:08] "GET /mixer-es12/js/components/ES12ParticleSwarm.js HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 57008)
+Traceback (most recent call last):
+  File "/usr/lib/python3.11/socketserver.py", line 691, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/usr/lib/python3.11/http/server.py", line 1306, in finish_request
+    self.RequestHandlerClass(request, client_address, self,
+  File "/usr/lib/python3.11/http/server.py", line 667, in __init__
+    super().__init__(*args, **kwargs)
+  File "/usr/lib/python3.11/socketserver.py", line 755, in __init__
+    self.handle()
+  File "/usr/lib/python3.11/http/server.py", line 432, in handle
+    self.handle_one_request()
+  File "/usr/lib/python3.11/http/server.py", line 420, in handle_one_request
+    method()
+  File "/usr/lib/python3.11/http/server.py", line 674, in do_GET
+    self.copyfile(f, self.wfile)
+  File "/usr/lib/python3.11/http/server.py", line 873, in copyfile
+    shutil.copyfileobj(source, outputfile)
+  File "/usr/lib/python3.11/shutil.py", line 200, in copyfileobj
+    fdst_write(buf)
+  File "/usr/lib/python3.11/socketserver.py", line 834, in write
+    self._sock.sendall(b)
+BrokenPipeError: [Errno 32] Broken pipe
+----------------------------------------
+127.0.0.1 - - [21/Jul/2025 10:34:08] "GET /favicon.ico HTTP/1.1" 200 -

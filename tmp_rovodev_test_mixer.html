@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test ES12 Mixer</title>
+</head>
+<body>
+    <h1>Testing ES12 Mixer</h1>
+    <div id="test-results"></div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="module">
+        const results = document.getElementById('test-results');
+        
+        function log(message) {
+            results.innerHTML += `<p>${message}</p>`;
+            console.log(message);
+        }
+        
+        log('✅ THREE.js loaded: ' + (typeof THREE !== 'undefined'));
+        log('✅ Module script working');
+        
+        try {
+            // Test importing our components
+            const { default: ES12ParticleSwarm } = await import('./mixer-es12/js/components/ES12ParticleSwarm.js');
+            log('✅ ES12ParticleSwarm imported successfully');
+            
+            const { default: ES12VoxelGrid } = await import('./mixer-es12/js/components/ES12VoxelGrid.js');
+            log('✅ ES12VoxelGrid imported successfully');
+            
+            const { default: ES12LightTunnel } = await import('./mixer-es12/js/components/ES12LightTunnel.js');
+            log('✅ ES12LightTunnel imported successfully');
+            
+            const { default: ES12NodeNetwork } = await import('./mixer-es12/js/components/ES12NodeNetwork.js');
+            log('✅ ES12NodeNetwork imported successfully');
+            
+            // Test instantiation
+            const particleSwarm = new ES12ParticleSwarm();
+            log('✅ ES12ParticleSwarm instantiated');
+            
+            const nodeNetwork = new ES12NodeNetwork();
+            log('✅ ES12NodeNetwork instantiated');
+            
+            log('🎉 All tests passed! The mixer should work.');
+            
+        } catch (error) {
+            log('❌ Error: ' + error.message);
+            console.error(error);
+        }
+    </script>
+</body>
+</html>
