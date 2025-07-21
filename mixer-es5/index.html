@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Custom visualiser example (ES5 version) | Akko Music Visualising Framework</title>
+
+        <!-- Make the page look a bit nicer (this does not affect Akko) -->
+        <link rel="stylesheet" href="/mixer/css/prettify.css"/>
+
+        <!-- Akko CSS -->
+        <link rel="stylesheet" href="/mixer/dist/akko.min.css"/>
+
+        <!-- Modern Mixer Styling -->
+        <link rel="stylesheet" href="/mixer/css/style.css"/>
+
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>MuizenMixer</h1>
+                <p>Experience music through stunning 3D visualizations. Drop your tracks into our browser-based Akko visualizer and watch your audio come to life with interactive, real-time graphics.</p>
+            </div>
+
+            <div class="visualizer-container">
+                <div id="akko"></div>
+                <button id="playButton" class="epic-play-button">
+                    <div class="button-content">
+                        <div class="play-icon">
+                            <div class="triangle"></div>
+                        </div>
+                        <span class="button-text">Start the Experience</span>
+                        <div class="sound-waves">
+                            <div class="wave wave1"></div>
+                            <div class="wave wave2"></div>
+                            <div class="wave wave3"></div>
+                            <div class="wave wave4"></div>
+                        </div>
+                    </div>
+                    <div class="button-glow"></div>
+                </button>
+            </div>
+
+            <div class="feature-highlight">
+                <p><strong>Interactive Experience:</strong> Hover over the visualization to grab particles, click to add more, and watch as your music transforms into beautiful 3D art.</p>
+            </div>
+
+            <div class="controls-info">
+                <div class="info-card">
+                    <h3>🎵 How to Use</h3>
+                    <ul>
+                        <li>Click play to start the demo tracks</li>
+                        <li>Drag and drop your own audio files</li>
+                        <li>Hover over the visualization to interact</li>
+                        <li>Click to add more visual elements</li>
+                        <li>Enjoy the real-time audio-reactive graphics</li>
+                    </ul>
+                </div>
+                
+                <div class="info-card">
+                    <h3>🎨 Visual Modes</h3>
+                    <ul>
+                        <li><strong>Cubes:</strong> 3D frequency-reactive cubes</li>
+                        <li><strong>Wave:</strong> Animated wireframe terrain</li>
+                        <li><strong>Sphere:</strong> Particle sphere visualization</li>
+                        <li><strong>Bars:</strong> Classic frequency bars</li>
+                        <li>Switch between modes using controls</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="feature-highlight">
+                <p>🚀 <strong>Coming Soon:</strong> Upload and share your remixes with the community under our collaborative culture contract!</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer style="background: rgba(0, 0, 0, 0.8); color: white; text-align: center; padding: 30px 20px; margin-top: 50px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <div style="max-width: 1200px; margin: 0 auto;">
+                <p style="margin: 0 0 10px 0; opacity: 0.8;">
+                    <strong>MuizenMixer</strong> - Experience music through stunning 3D visualizations
+                </p>
+                <p style="margin: 0; opacity: 0.6; font-size: 0.9rem;">
+                    © 2020-2024 MuizenMesh. All rights reserved. | 
+                    <a href="/" style="color: #4ecdc4; text-decoration: none;">Back to Main Site</a>
+                </p>
+            </div>
+        </footer>
+
+        <!-- Akko's dependencies -->
+        <script src="https://cdn.jsdelivr.net/bluebird/latest/bluebird.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/86/three.min.js"></script>
+
+        <!-- Debug dependencies -->
+        <script>
+            console.log('Dependencies loaded:');
+            console.log('- Promise/Bluebird:', typeof Promise);
+            console.log('- THREE.js:', typeof THREE);
+        </script>
+
+        <!-- Load Akko with proper error handling -->
+        <script>
+            // Clear any existing module system
+            delete window.module;
+            delete window.exports;
+            delete window.require;
+        </script>
+        <script src="/mixer/dist/akko.min.js" onerror="console.error('Failed to load akko.min.js')"></script>
+        <script>
+            console.log('After akko.min.js - Akko:', typeof Akko);
+            console.log('Window keys containing akko:', Object.keys(window).filter(k => k.toLowerCase().includes('akko')));
+            
+            // Check if it's in a different location
+            if (typeof Akko === 'undefined') {
+                console.log('Checking window object for Akko...');
+                for (let key in window) {
+                    if (key.toLowerCase().includes('akko') || (typeof window[key] === 'function' && window[key].toString().includes('Akko'))) {
+                        console.log('Found potential Akko at window.' + key + ':', typeof window[key]);
+                    }
+                }
+            }
+        </script>
+
+        <!-- Debug Akko loading -->
+        <script>
+            console.log('Akko loaded:', typeof Akko);
+            if (typeof Akko === 'undefined') {
+                console.error('❌ Akko failed to load!');
+                alert('Akko framework failed to load. Check console for errors.');
+            }
+        </script>
+
+        <!-- Defining our visualiser and starting Akko -->
+        <script src="/mixer/js/components/CustomVisualiser.js"></script>
+        <script src="/mixer/js/components/WaveVisualiser.js"></script>
+        <script src="/mixer/js/components/SphereVisualiser.js"></script>
+        <script src="/mixer/js/components/CustomBarsVisualiser.js"></script>
+        <script src="/mixer/js/components/BarVisualiser.js"></script>
+        <script src="/mixer/js/components/RingVisualiser.js"></script>
+        <script src="/mixer/js/components/DynamicParticleSwarmVisualiser.js"></script>
+        <script src="/mixer/js/components/AudioReactiveVoxelGridVisualiser.js"></script>
+        <script src="/mixer/js/components/ProceduralLightTunnelVisualiser.js"></script>
+        <script src="/mixer/js/components/InterconnectedNodeNetworkVisualiser.js"></script>
+        <script src="/mixer/js/main.js"></script>
+
+    </body>
+</html>

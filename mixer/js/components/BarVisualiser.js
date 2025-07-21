@@ -117,4 +117,7 @@ class BarVisualiser extends Akko.Visualiser {
 
 }
 
-module.exports = BarVisualiser;
+// Register with Akko
+if (typeof Akko !== 'undefined') {
+    Akko.addVisualiser('BarVisualiser', BarVisualiser);
+}

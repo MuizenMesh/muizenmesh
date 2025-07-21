@@ -74,4 +74,7 @@ class RingVisualiser extends Akko.Visualiser {
 
 }
 
-module.exports = RingVisualiser;
+// Register with Akko
+if (typeof Akko !== 'undefined') {
+    Akko.addVisualiser('RingVisualiser', RingVisualiser);
+}

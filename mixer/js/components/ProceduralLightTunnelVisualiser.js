@@ -1,85 +1,104 @@
-class ProceduralLightTunnelVisualiser extends Akko.Visualiser {
-    constructor() {
-        super({
-            code: 'PLT',
-            name: 'Procedural Light Tunnel',
-            fftSize: 128,
-            smoothingTimeConstant: 0.8,
+function ProceduralLightTunnelVisualiser() {
+    Akko.Visualiser.call(this, {
+        code: 'PLT',
+        name: 'Procedural Light Tunnel',
+        fftSize: 256
+    });
+    
+    this.tunnelSegments = 50;
+    this.rings = [];
+    this.time = 0;
+}
+
+ProceduralLightTunnelVisualiser.prototype = Object.create(Akko.Visualiser.prototype);
+ProceduralLightTunnelVisualiser.prototype.constructor = ProceduralLightTunnelVisualiser;
+
+ProceduralLightTunnelVisualiser.prototype.init = function(scene, camera, renderer) {
+    this.scene = scene;
+    this.camera = camera;
+    this.renderer = renderer;
+
+    // Create tunnel rings
+    this.tunnelGroup = new THREE.Group();
+    
+    for (var i = 0; i < this.tunnelSegments; i++) {
+        var ringGeometry = new THREE.RingGeometry(5, 8, 16);
+        var ringMaterial = new THREE.MeshBasicMaterial({
+            color: new THREE.Color().setHSL(i / this.tunnelSegments, 1, 0.5),
+            transparent: true,
+            opacity: 0.7,
+            side: THREE.DoubleSide
         });
+        
+        var ring = new THREE.Mesh(ringGeometry, ringMaterial);
+        ring.position.z = i * -2;
+        ring.userData = { originalZ: ring.position.z, index: i };
+        
+        this.rings.push(ring);
+        this.tunnelGroup.add(ring);
     }
 
-    onInit(data) {
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, data.width / data.height, 0.1, 1000);
-        this.camera.position.z = 0;
+    // Add some point lights
+    for (var j = 0; j < 5; j++) {
+        var light = new THREE.PointLight(
+            new THREE.Color().setHSL(j / 5, 1, 0.5),
+            1,
+            20
+        );
+        light.position.set(
+            (Math.random() - 0.5) * 10,
+            (Math.random() - 0.5) * 10,
+            j * -20
+        );
+        this.tunnelGroup.add(light);
+    }
 
-        // Add a simple ambient light to make things visible
-        const ambientLight = new THREE.AmbientLight(0x404040, 2); // soft white light
-        this.scene.add(ambientLight);
+    this.scene.add(this.tunnelGroup);
+};
 
-        // Add a point light to illuminate the tunnel
-        const pointLight = new THREE.PointLight(0xffffff, 1, 100);
-        pointLight.position.set(0, 0, 0);
-        this.scene.add(pointLight);
+ProceduralLightTunnelVisualiser.prototype.update = function(frequencyData) {
+    if (!this.tunnelGroup) return;
 
-        this.lights = [];
-        const lightCount = 50;
-        const lightGeometry = new THREE.SphereGeometry(0.5, 8, 8);
+    this.time += 0.016;
 
-        for (let i = 0; i < lightCount; i++) {
-            const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            const light = new THREE.Mesh(lightGeometry, lightMaterial);
-            light.position.set(
-                (Math.random() - 0.5) * 20,
-                (Math.random() - 0.5) * 20,
-                -i * 10 // Position lights along the Z-axis to form a tunnel
-            );
-            this.scene.add(light);
-            this.lights.push(light);
+    // Move camera through tunnel
+    this.camera.position.z = Math.sin(this.time * 0.5) * 5;
+
+    for (var i = 0; i < this.rings.length; i++) {
+        var ring = this.rings[i];
+        var audioIndex = Math.floor((i / this.rings.length) * frequencyData.length);
+        var audioLevel = frequencyData[audioIndex] / 255;
+        
+        // Move rings towards camera
+        ring.position.z += 0.5;
+        
+        // Reset ring position when it passes the camera
+        if (ring.position.z > 10) {
+            ring.position.z = -this.tunnelSegments * 2;
         }
+        
+        // Scale rings based on audio
+        var scale = 1 + audioLevel * 2;
+        ring.scale.setScalar(scale);
+        
+        // Update ring color and opacity
+        var hue = (ring.userData.index / this.tunnelSegments + this.time * 0.1) % 1;
+        ring.material.color.setHSL(hue, 1, 0.3 + audioLevel * 0.7);
+        ring.material.opacity = 0.3 + audioLevel * 0.7;
+        
+        // Rotate rings
+        ring.rotation.z += 0.02 + audioLevel * 0.05;
     }
 
-    onUpdate(data) {
-        const frequencyData = data.frequencyData;
-        const timeDomainData = data.timeDomainData;
+    // Rotate entire tunnel
+    this.tunnelGroup.rotation.z += 0.005;
+};
 
-        // Move camera forward to simulate tunnel movement
-        this.camera.position.z -= 0.5; 
-        if (this.camera.position.z < -500) {
-            this.camera.position.z = 0;
-        }
+ProceduralLightTunnelVisualiser.prototype.resize = function(width, height) {
+    // No specific resize logic needed
+};
 
-        this.lights.forEach((light, index) => {
-            const freqIndex = Math.floor((index / this.lights.length) * frequencyData.length);
-            const frequency = frequencyData[freqIndex] || 0;
-            const timeDomain = timeDomainData[freqIndex] || 0;
-
-            // Light intensity and color based on audio
-            const intensity = 0.5 + frequency * 2;
-            light.material.color.setHSL(timeDomain, 1, intensity);
-
-            // Reset light position if it goes too far back
-            if (light.position.z - this.camera.position.z > 50) {
-                light.position.z -= 500; // Move it back to the front of the tunnel
-            }
-        });
-
-        data.renderer.render(this.scene, this.camera);
-    }
-
-    onResize(data) {
-        this.camera.aspect = data.width / data.height;
-        this.camera.updateProjectionMatrix();
-    }
-
-    onDestroy() {
-        this.lights.forEach(light => {
-            this.scene.remove(light);
-            light.geometry.dispose();
-            light.material.dispose();
-        });
-        delete this.scene;
-        delete this.camera;
-        delete this.lights;
-    }
+// Register with Akko
+if (typeof Akko !== 'undefined') {
+    Akko.addVisualiser('ProceduralLightTunnelVisualiser', ProceduralLightTunnelVisualiser);
 }

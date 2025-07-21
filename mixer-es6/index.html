@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MuizenMesh Mixer ES6 - Audio Visualizer</title>
+    
+    <!-- Akko CSS -->
+    <link rel="stylesheet" href="../Akko/dist/akko.min.css"/>
+    
+    <!-- Custom Mixer Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        
+        #akko-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        .es6-badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: #00ff00;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            z-index: 1000;
+            border: 2px solid #00ff00;
+        }
+        
+        .back-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            z-index: 1000;
+            border: 2px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: #667eea;
+            transform: scale(1.05);
+        }
+        
+        /* Epic Play Button Styles for ES6 version */
+        .epic-play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff00 0%, #00cc00 100%);
+            cursor: pointer;
+            z-index: 100;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 255, 0, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        .epic-play-button:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 15px 40px rgba(0, 255, 0, 0.6);
+            animation: none;
+        }
+
+        .button-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 2;
+        }
+
+        .play-icon {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin-bottom: 10px;
+        }
+
+        .triangle {
+            width: 0;
+            height: 0;
+            border-left: 30px solid white;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+            margin-left: 8px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            animation: playPulse 1.5s ease-in-out infinite alternate;
+        }
+
+        .button-text {
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 10px 30px rgba(0, 255, 0, 0.4); }
+            50% { box-shadow: 0 15px 40px rgba(0, 255, 0, 0.6), 0 0 0 10px rgba(0, 255, 0, 0.1); }
+            100% { box-shadow: 0 10px 30px rgba(0, 255, 0, 0.4); }
+        }
+
+        @keyframes playPulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.1); opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+    <div class="es6-badge">ES6 VERSION</div>
+    <a href="../mixer/" class="back-link">← Back to ES5 Mixer</a>
+    
+    <div id="akko-container">
+        <button id="playButton" class="epic-play-button">
+            <div class="button-content">
+                <div class="play-icon">
+                    <div class="triangle"></div>
+                </div>
+                <span class="button-text">Start ES6 Experience</span>
+            </div>
+        </button>
+    </div>
+
+    <!-- Akko's dependencies -->
+    <script src="https://cdn.jsdelivr.net/bluebird/latest/bluebird.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Akko JS (ES6 version) -->
+    <script src="../Akko/dist/akko.js"></script>
+
+    <!-- ES6 Module Script -->
+    <script type="module">
+        // Import ES6 visualizers from Akko
+        import DynamicParticleSwarmVisualiser from './js/components/DynamicParticleSwarmVisualiser.js';
+        import AudioReactiveVoxelGridVisualiser from './js/components/AudioReactiveVoxelGridVisualiser.js';
+        import ProceduralLightTunnelVisualiser from './js/components/ProceduralLightTunnelVisualiser.js';
+        import InterconnectedNodeNetworkVisualiser from './js/components/InterconnectedNodeNetworkVisualiser.js';
+        
+        let akkoInstance = null;
+        
+        // Initialize Akko when play button is clicked
+        document.getElementById('playButton').addEventListener('click', function() {
+            this.style.display = 'none';
+            
+            // Create Akko instance
+            akkoInstance = new Akko({
+                container: document.getElementById('akko-container'),
+                autoPlay: true,
+                useDefaultVisualisers: true, // Include built-in visualizers
+            });
+            
+            // Add our custom ES6 visualizers
+            akkoInstance.addVisualiser(new DynamicParticleSwarmVisualiser());
+            akkoInstance.addVisualiser(new AudioReactiveVoxelGridVisualiser());
+            akkoInstance.addVisualiser(new ProceduralLightTunnelVisualiser());
+            akkoInstance.addVisualiser(new InterconnectedNodeNetworkVisualiser());
+            
+            // Load audio tracks
+            akkoInstance.addTrack('./audio/Computer Music All-Stars - Albatross v2.mp3');
+            akkoInstance.addTrack('./audio/Fatal Force - Fan Girls.mp3');
+            
+            // Start the experience
+            akkoInstance.start();
+            
+            console.log('🚀 ES6 Mixer started with', akkoInstance.visualisers.length, 'visualizers');
+        });
+        
+        // Make akko globally available for debugging
+        window.akkoES6 = akkoInstance;
+    </script>
+</body>
+</html>

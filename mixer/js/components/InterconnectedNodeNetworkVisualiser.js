@@ -1,101 +1,165 @@
-class InterconnectedNodeNetworkVisualiser extends Akko.Visualiser {
-    constructor() {
-        super({
-            code: 'INN',
-            name: 'Interconnected Node Network',
-            fftSize: 64,
-            smoothingTimeConstant: 0.7,
+function InterconnectedNodeNetworkVisualiser() {
+    Akko.Visualiser.call(this, {
+        code: 'INN',
+        name: 'Interconnected Node Network',
+        fftSize: 256
+    });
+    
+    this.nodeCount = 50;
+    this.nodes = [];
+    this.connections = [];
+    this.time = 0;
+}
+
+InterconnectedNodeNetworkVisualiser.prototype = Object.create(Akko.Visualiser.prototype);
+InterconnectedNodeNetworkVisualiser.prototype.constructor = InterconnectedNodeNetworkVisualiser;
+
+InterconnectedNodeNetworkVisualiser.prototype.init = function(scene, camera, renderer) {
+    this.scene = scene;
+    this.camera = camera;
+    this.renderer = renderer;
+
+    this.networkGroup = new THREE.Group();
+
+    // Create nodes
+    var nodeGeometry = new THREE.SphereGeometry(0.5, 8, 8);
+    
+    for (var i = 0; i < this.nodeCount; i++) {
+        var nodeMaterial = new THREE.MeshBasicMaterial({
+            color: new THREE.Color().setHSL(Math.random(), 0.8, 0.6),
+            transparent: true,
+            opacity: 0.8
         });
+        
+        var node = new THREE.Mesh(nodeGeometry, nodeMaterial);
+        node.position.set(
+            (Math.random() - 0.5) * 50,
+            (Math.random() - 0.5) * 50,
+            (Math.random() - 0.5) * 50
+        );
+        
+        node.userData = {
+            originalPosition: node.position.clone(),
+            velocity: new THREE.Vector3(
+                (Math.random() - 0.5) * 0.1,
+                (Math.random() - 0.5) * 0.1,
+                (Math.random() - 0.5) * 0.1
+            ),
+            audioIndex: Math.floor((i / this.nodeCount) * 128)
+        };
+        
+        this.nodes.push(node);
+        this.networkGroup.add(node);
     }
 
-    onInit(data) {
-        console.log('InterconnectedNodeNetworkVisualiser: onInit called');
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, data.width / data.height, 0.1, 1000);
-        this.camera.position.z = 100;
+    // Create connections between nearby nodes
+    var connectionMaterial = new THREE.LineBasicMaterial({
+        color: 0x00ffff,
+        transparent: true,
+        opacity: 0.3
+    });
 
-        this.nodes = [];
-        this.lines = [];
-        const nodeCount = 50;
-        const nodeGeometry = new THREE.SphereGeometry(1, 16, 16);
-
-        // Create nodes
-        for (let i = 0; i < nodeCount; i++) {
-            const nodeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-            const node = new THREE.Mesh(nodeGeometry, nodeMaterial);
-            node.position.set(
-                (Math.random() - 0.5) * 100,
-                (Math.random() - 0.5) * 100,
-                (Math.random() - 0.5) * 100
-            );
-            this.scene.add(node);
-            this.nodes.push(node);
-        }
-
-        // Create connections between nodes
-        const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.5 });
-        for (let i = 0; i < nodeCount; i++) {
-            for (let j = i + 1; j < nodeCount; j++) {
-                if (this.nodes[i].position.distanceTo(this.nodes[j].position) < 50) { // Connect close nodes
-                    const points = [];
-                    points.push(this.nodes[i].position);
-                    points.push(this.nodes[j].position);
-                    const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-                    const line = new THREE.Line(lineGeometry, lineMaterial);
-                    this.scene.add(line);
-                    this.lines.push(line);
-                }
+    for (var j = 0; j < this.nodes.length; j++) {
+        for (var k = j + 1; k < this.nodes.length; k++) {
+            var distance = this.nodes[j].position.distanceTo(this.nodes[k].position);
+            
+            if (distance < 15) { // Only connect nearby nodes
+                var geometry = new THREE.BufferGeometry();
+                var positions = new Float32Array(6); // 2 points * 3 coordinates
+                
+                positions[0] = this.nodes[j].position.x;
+                positions[1] = this.nodes[j].position.y;
+                positions[2] = this.nodes[j].position.z;
+                positions[3] = this.nodes[k].position.x;
+                positions[4] = this.nodes[k].position.y;
+                positions[5] = this.nodes[k].position.z;
+                
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                
+                var line = new THREE.Line(geometry, connectionMaterial);
+                line.userData = { nodeA: j, nodeB: k };
+                
+                this.connections.push(line);
+                this.networkGroup.add(line);
             }
         }
     }
 
-    onUpdate(data) {
-        // console.log('InterconnectedNodeNetworkVisualiser: onUpdate called');
-        const frequencyData = data.frequencyData;
-        const timeDomainData = data.timeDomainData;
+    this.scene.add(this.networkGroup);
+};
 
-        this.nodes.forEach((node, index) => {
-            const freqIndex = Math.floor((index / this.nodes.length) * frequencyData.length);
-            const frequency = frequencyData[freqIndex] || 0;
-            const timeDomain = timeDomainData[freqIndex] || 0;
+InterconnectedNodeNetworkVisualiser.prototype.update = function(frequencyData) {
+    if (!this.networkGroup) return;
 
-            // Node pulse and color based on audio
-            const scale = 1 + frequency * 0.5;
-            node.scale.set(scale, scale, scale);
-            node.material.color.setHSL(timeDomain, 1, 0.5 + frequency * 0.5);
-        });
+    this.time += 0.016;
 
-        this.lines.forEach(line => {
-            // Line opacity based on overall volume
-            const avgFrequency = frequencyData.reduce((a, b) => a + b, 0) / frequencyData.length;
-            line.material.opacity = 0.2 + avgFrequency * 0.8;
-        });
-
-        this.scene.rotation.y += 0.001;
-        this.camera.lookAt(this.scene.position);
-
-        data.renderer.render(this.scene, this.camera);
+    // Update nodes
+    for (var i = 0; i < this.nodes.length; i++) {
+        var node = this.nodes[i];
+        var audioLevel = frequencyData[node.userData.audioIndex] / 255;
+        
+        // Scale nodes based on audio
+        var scale = 0.5 + audioLevel * 2;
+        node.scale.setScalar(scale);
+        
+        // Update node color
+        var hue = (node.userData.audioIndex / 128 + this.time * 0.1) % 1;
+        node.material.color.setHSL(hue, 0.8, 0.3 + audioLevel * 0.7);
+        
+        // Move nodes slightly
+        node.position.add(node.userData.velocity);
+        
+        // Apply some attraction back to original position
+        var returnForce = node.userData.originalPosition.clone().sub(node.position).multiplyScalar(0.01);
+        node.userData.velocity.add(returnForce);
+        
+        // Apply damping
+        node.userData.velocity.multiplyScalar(0.98);
+        
+        // Add audio-reactive movement
+        node.userData.velocity.add(new THREE.Vector3(
+            (Math.random() - 0.5) * audioLevel * 0.1,
+            (Math.random() - 0.5) * audioLevel * 0.1,
+            (Math.random() - 0.5) * audioLevel * 0.1
+        ));
     }
 
-    onResize(data) {
-        this.camera.aspect = data.width / data.height;
-        this.camera.updateProjectionMatrix();
+    // Update connections
+    for (var j = 0; j < this.connections.length; j++) {
+        var connection = this.connections[j];
+        var nodeA = this.nodes[connection.userData.nodeA];
+        var nodeB = this.nodes[connection.userData.nodeB];
+        
+        // Update connection positions
+        var positions = connection.geometry.attributes.position.array;
+        positions[0] = nodeA.position.x;
+        positions[1] = nodeA.position.y;
+        positions[2] = nodeA.position.z;
+        positions[3] = nodeB.position.x;
+        positions[4] = nodeB.position.y;
+        positions[5] = nodeB.position.z;
+        
+        connection.geometry.attributes.position.needsUpdate = true;
+        
+        // Update connection opacity based on distance and audio
+        var distance = nodeA.position.distanceTo(nodeB.position);
+        var audioA = frequencyData[nodeA.userData.audioIndex] / 255;
+        var audioB = frequencyData[nodeB.userData.audioIndex] / 255;
+        var avgAudio = (audioA + audioB) / 2;
+        
+        connection.material.opacity = Math.max(0.1, (1 - distance / 20) * avgAudio);
     }
 
-    onDestroy() {
-        this.nodes.forEach(node => {
-            this.scene.remove(node);
-            node.geometry.dispose();
-            node.material.dispose();
-        });
-        this.lines.forEach(line => {
-            this.scene.remove(line);
-            line.geometry.dispose();
-            line.material.dispose();
-        });
-        delete this.scene;
-        delete this.camera;
-        delete this.nodes;
-        delete this.lines;
-    }
+    // Rotate entire network
+    this.networkGroup.rotation.y += 0.005;
+    this.networkGroup.rotation.x += 0.002;
+};
+
+InterconnectedNodeNetworkVisualiser.prototype.resize = function(width, height) {
+    // No specific resize logic needed
+};
+
+// Register with Akko
+if (typeof Akko !== 'undefined') {
+    Akko.addVisualiser('InterconnectedNodeNetworkVisualiser', InterconnectedNodeNetworkVisualiser);
 }

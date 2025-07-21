@@ -1,83 +1,98 @@
-class AudioReactiveVoxelGridVisualiser extends Akko.Visualiser {
-    constructor() {
-        super({
-            code: 'AVG',
-            name: 'Audio Reactive Voxel Grid',
-            fftSize: 64,
-            smoothingTimeConstant: 0.8,
-        });
-    }
+function AudioReactiveVoxelGridVisualiser() {
+    Akko.Visualiser.call(this, {
+        code: 'ARVG',
+        name: 'Audio Reactive Voxel Grid',
+        fftSize: 512
+    });
+    
+    this.gridSize = 16;
+    this.voxels = [];
+    this.time = 0;
+}
 
-    onInit(data) {
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, data.width / data.height, 0.1, 1000);
-        this.camera.position.set(0, 0, 100);
-        this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+AudioReactiveVoxelGridVisualiser.prototype = Object.create(Akko.Visualiser.prototype);
+AudioReactiveVoxelGridVisualiser.prototype.constructor = AudioReactiveVoxelGridVisualiser;
 
-        this.voxels = [];
-        const gridSize = 10;
-        const spacing = 10;
-        const startX = -(gridSize / 2) * spacing;
-        const startY = -(gridSize / 2) * spacing;
-        const startZ = -(gridSize / 2) * spacing;
+AudioReactiveVoxelGridVisualiser.prototype.init = function(scene, camera, renderer) {
+    this.scene = scene;
+    this.camera = camera;
+    this.renderer = renderer;
 
-        const geometry = new THREE.BoxGeometry(5, 5, 5);
+    // Create voxel grid
+    var geometry = new THREE.BoxGeometry(1, 1, 1);
+    this.voxelGroup = new THREE.Group();
 
-        for (let x = 0; x < gridSize; x++) {
-            for (let y = 0; y < gridSize; y++) {
-                for (let z = 0; z < gridSize; z++) {
-                    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-                    const voxel = new THREE.Mesh(geometry, material);
-                    voxel.position.set(
-                        startX + x * spacing,
-                        startY + y * spacing,
-                        startZ + z * spacing
-                    );
-                    this.scene.add(voxel);
-                    this.voxels.push(voxel);
-                }
+    for (var x = 0; x < this.gridSize; x++) {
+        this.voxels[x] = [];
+        for (var y = 0; y < this.gridSize; y++) {
+            this.voxels[x][y] = [];
+            for (var z = 0; z < this.gridSize; z++) {
+                var material = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(
+                        (x + y + z) / (this.gridSize * 3),
+                        0.8,
+                        0.5
+                    ),
+                    transparent: true,
+                    opacity: 0.3
+                });
+
+                var voxel = new THREE.Mesh(geometry, material);
+                voxel.position.set(
+                    x - this.gridSize / 2,
+                    y - this.gridSize / 2,
+                    z - this.gridSize / 2
+                );
+
+                this.voxels[x][y][z] = voxel;
+                this.voxelGroup.add(voxel);
             }
         }
     }
 
-    onUpdate(data) {
-        const frequencyData = data.frequencyData;
-        const timeDomainData = data.timeDomainData;
+    this.scene.add(this.voxelGroup);
+};
 
-        this.voxels.forEach((voxel, index) => {
-            const freqIndex = Math.floor((index / this.voxels.length) * frequencyData.length);
-            const frequency = frequencyData[freqIndex] || 0;
-            const timeDomain = timeDomainData[freqIndex] || 0;
+AudioReactiveVoxelGridVisualiser.prototype.update = function(frequencyData) {
+    if (!this.voxelGroup) return;
 
-            const scale = 1 + frequency * 0.5; // Scale based on frequency
-            voxel.scale.set(scale, scale, scale);
+    this.time += 0.016;
 
-            // Color based on time domain and frequency
-            const hue = (frequency * 0.5 + timeDomain * 0.5) % 1; // Combine frequency and timeDomain for hue
-            const saturation = 0.8; // Keep saturation high for vibrant colors
-            const lightness = 0.4 + frequency * 0.3; // Lightness reacts to frequency
-            voxel.material.color.setHSL(hue, saturation, lightness);
-        });
-
-        this.scene.rotation.x += 0.001;
-        this.scene.rotation.y += 0.002;
-
-        data.renderer.render(this.scene, this.camera);
+    for (var x = 0; x < this.gridSize; x++) {
+        for (var y = 0; y < this.gridSize; y++) {
+            for (var z = 0; z < this.gridSize; z++) {
+                var voxel = this.voxels[x][y][z];
+                
+                // Map voxel position to frequency data
+                var freqIndex = Math.floor(
+                    ((x + y + z) / (this.gridSize * 3)) * frequencyData.length
+                );
+                var audioLevel = frequencyData[freqIndex] / 255;
+                
+                // Scale voxel based on audio
+                var scale = 0.5 + audioLevel * 2;
+                voxel.scale.setScalar(scale);
+                
+                // Update opacity
+                voxel.material.opacity = 0.2 + audioLevel * 0.8;
+                
+                // Update color hue based on audio
+                var hue = ((x + y + z) / (this.gridSize * 3) + this.time * 0.1) % 1;
+                voxel.material.color.setHSL(hue, 0.8, 0.3 + audioLevel * 0.7);
+            }
+        }
     }
 
-    onResize(data) {
-        this.camera.aspect = data.width / data.height;
-        this.camera.updateProjectionMatrix();
-    }
+    // Rotate the entire grid
+    this.voxelGroup.rotation.x += 0.005;
+    this.voxelGroup.rotation.y += 0.01;
+};
 
-    onDestroy() {
-        this.voxels.forEach(voxel => {
-            this.scene.remove(voxel);
-            voxel.geometry.dispose();
-            voxel.material.dispose();
-        });
-        delete this.scene;
-        delete this.camera;
-        delete this.voxels;
-    }
+AudioReactiveVoxelGridVisualiser.prototype.resize = function(width, height) {
+    // No specific resize logic needed
+};
+
+// Register with Akko
+if (typeof Akko !== 'undefined') {
+    Akko.addVisualiser('AudioReactiveVoxelGridVisualiser', AudioReactiveVoxelGridVisualiser);
 }

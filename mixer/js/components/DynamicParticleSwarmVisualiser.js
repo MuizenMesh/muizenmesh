@@ -1,117 +1,138 @@
-class DynamicParticleSwarmVisualiser extends Akko.Visualiser {
-    constructor() {
-        super({
-            code: 'DPS',
-            name: 'Dynamic Particle Swarm',
-            fftSize: 128,
-            smoothingTimeConstant: 0.7,
-        });
+function DynamicParticleSwarmVisualiser() {
+    Akko.Visualiser.call(this, {
+        code: 'DPS',
+        name: 'Dynamic Particle Swarm',
+        fftSize: 256
+    });
+    
+    this.particles = [];
+    this.particleCount = 500;
+    this.swarmCenter = new THREE.Vector3();
+    this.time = 0;
+}
+
+DynamicParticleSwarmVisualiser.prototype = Object.create(Akko.Visualiser.prototype);
+DynamicParticleSwarmVisualiser.prototype.constructor = DynamicParticleSwarmVisualiser;
+
+DynamicParticleSwarmVisualiser.prototype.init = function(scene, camera, renderer) {
+    this.scene = scene;
+    this.camera = camera;
+    this.renderer = renderer;
+
+    // Create particle geometry
+    var geometry = new THREE.BufferGeometry();
+    var positions = new Float32Array(this.particleCount * 3);
+    var colors = new Float32Array(this.particleCount * 3);
+    var velocities = new Float32Array(this.particleCount * 3);
+
+    for (var i = 0; i < this.particleCount; i++) {
+        var i3 = i * 3;
+        
+        // Random initial positions
+        positions[i3] = (Math.random() - 0.5) * 100;
+        positions[i3 + 1] = (Math.random() - 0.5) * 100;
+        positions[i3 + 2] = (Math.random() - 0.5) * 100;
+        
+        // Random initial colors
+        colors[i3] = Math.random();
+        colors[i3 + 1] = Math.random();
+        colors[i3 + 2] = Math.random();
+        
+        // Random initial velocities
+        velocities[i3] = (Math.random() - 0.5) * 2;
+        velocities[i3 + 1] = (Math.random() - 0.5) * 2;
+        velocities[i3 + 2] = (Math.random() - 0.5) * 2;
     }
 
-    onInit(data) {
-        console.log('DynamicParticleSwarmVisualiser: onInit called');
-        this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, data.width / data.height, 0.1, 1000);
-        this.camera.position.z = 50;
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
+    this.velocities = velocities;
 
-        // Particle system setup
-        const particleCount = 1000;
-        const particles = new THREE.BufferGeometry();
-        const positions = new Float32Array(particleCount * 3);
-        const colors = new Float32Array(particleCount * 3);
-        const sizes = new Float32Array(particleCount);
+    // Create particle material
+    var material = new THREE.PointsMaterial({
+        size: 2,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending
+    });
 
-        const color = new THREE.Color();
+    // Create particle system
+    this.particleSystem = new THREE.Points(geometry, material);
+    this.scene.add(this.particleSystem);
+};
 
-        for (let i = 0; i < particleCount; i++) {
-            // Position particles randomly
-            positions[i * 3] = (Math.random() * 2 - 1) * 200;
-            positions[i * 3 + 1] = (Math.random() * 2 - 1) * 200;
-            positions[i * 3 + 2] = (Math.random() * 2 - 1) * 200;
+DynamicParticleSwarmVisualiser.prototype.update = function(frequencyData) {
+    if (!this.particleSystem) return;
 
-            // Assign random colors
-            color.setHSL(Math.random(), 1.0, 0.5);
-            colors[i * 3] = color.r;
-            colors[i * 3 + 1] = color.g;
-            colors[i * 3 + 2] = color.b;
+    this.time += 0.016;
+    
+    // Calculate audio-reactive swarm center
+    var bassLevel = frequencyData[0] / 255;
+    var midLevel = frequencyData[Math.floor(frequencyData.length / 2)] / 255;
+    var trebleLevel = frequencyData[frequencyData.length - 1] / 255;
+    
+    this.swarmCenter.x = Math.sin(this.time * 0.5) * 30 * bassLevel;
+    this.swarmCenter.y = Math.cos(this.time * 0.3) * 30 * midLevel;
+    this.swarmCenter.z = Math.sin(this.time * 0.7) * 30 * trebleLevel;
 
-            // Assign random sizes
-            sizes[i] = Math.random() * 10 + 5;
+    var positions = this.particleSystem.geometry.attributes.position.array;
+    var colors = this.particleSystem.geometry.attributes.color.array;
+
+    for (var i = 0; i < this.particleCount; i++) {
+        var i3 = i * 3;
+        
+        // Current position
+        var x = positions[i3];
+        var y = positions[i3 + 1];
+        var z = positions[i3 + 2];
+        
+        // Calculate force towards swarm center
+        var dx = this.swarmCenter.x - x;
+        var dy = this.swarmCenter.y - y;
+        var dz = this.swarmCenter.z - z;
+        var distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        
+        // Apply swarm behavior
+        var force = 0.02 * (bassLevel + 0.1);
+        if (distance > 0) {
+            this.velocities[i3] += (dx / distance) * force;
+            this.velocities[i3 + 1] += (dy / distance) * force;
+            this.velocities[i3 + 2] += (dz / distance) * force;
         }
-
-        particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        particles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-        particles.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-        const shaderMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                                pointTexture: { value: new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/disc.png') }
-            },
-            vertexShader: `
-                attribute float size;
-                attribute vec3 color;
-                varying vec3 vColor;
-                void main() {
-                    vColor = color;
-                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                    gl_PointSize = size * (300.0 / -mvPosition.z);
-                    gl_Position = projectionMatrix * mvPosition;
-                }
-            `,
-            fragmentShader: `
-                varying vec3 vColor;
-                uniform sampler2D pointTexture;
-                void main() {
-                    gl_FragColor = vec4(vColor, 1.0);
-                    gl_FragColor = gl_FragColor * texture2D(pointTexture, gl_PointCoord);
-                }
-            `,
-            blending: THREE.AdditiveBlending,
-            depthTest: false,
-            transparent: true
-        });
-
-        this.particleSystem = new THREE.Points(particles, shaderMaterial);
-        this.scene.add(this.particleSystem);
+        
+        // Apply damping
+        this.velocities[i3] *= 0.98;
+        this.velocities[i3 + 1] *= 0.98;
+        this.velocities[i3 + 2] *= 0.98;
+        
+        // Update positions
+        positions[i3] += this.velocities[i3];
+        positions[i3 + 1] += this.velocities[i3 + 1];
+        positions[i3 + 2] += this.velocities[i3 + 2];
+        
+        // Update colors based on audio
+        var audioIndex = Math.floor((i / this.particleCount) * frequencyData.length);
+        var audioLevel = frequencyData[audioIndex] / 255;
+        
+        colors[i3] = audioLevel * 0.8 + 0.2; // Red
+        colors[i3 + 1] = midLevel * 0.6 + 0.4; // Green
+        colors[i3 + 2] = trebleLevel * 0.9 + 0.1; // Blue
     }
 
-    onUpdate(data) {
-        // console.log('DynamicParticleSwarmVisualiser: onUpdate called');
-        // Example: Make particles react to bass frequencies
-        const bass = data.frequencyData[0] || 0; // Assuming bass is the first frequency band
-        const positions = this.particleSystem.geometry.attributes.position.array;
-        const sizes = this.particleSystem.geometry.attributes.size.array;
+    this.particleSystem.geometry.attributes.position.needsUpdate = true;
+    this.particleSystem.geometry.attributes.color.needsUpdate = true;
+    
+    // Rotate the entire system
+    this.particleSystem.rotation.y += 0.005 * (bassLevel + 0.1);
+};
 
-        for (let i = 0; i < positions.length; i += 3) {
-            // Simple reaction: particles move outwards with bass
-            positions[i] += Math.sin(data.time * 0.001 + i) * bass * 0.01;
-            positions[i + 1] += Math.cos(data.time * 0.001 + i) * bass * 0.01;
-            positions[i + 2] += Math.sin(data.time * 0.001 + i) * bass * 0.01;
+DynamicParticleSwarmVisualiser.prototype.resize = function(width, height) {
+    // No specific resize logic needed for particles
+};
 
-            // Sizes can also react
-            sizes[i / 3] = (Math.random() * 10 + 5) + bass * 0.1;
-        }
-
-        this.particleSystem.geometry.attributes.position.needsUpdate = true;
-        this.particleSystem.geometry.attributes.size.needsUpdate = true;
-
-        this.particleSystem.rotation.x += 0.001;
-        this.particleSystem.rotation.y += 0.002;
-
-        data.renderer.render(this.scene, this.camera);
-    }
-
-    onResize(data) {
-        this.camera.aspect = data.width / data.height;
-        this.camera.updateProjectionMatrix();
-    }
-
-    onDestroy() {
-        this.scene.remove(this.particleSystem);
-        this.particleSystem.geometry.dispose();
-        this.particleSystem.material.dispose();
-        delete this.scene;
-        delete this.camera;
-        delete this.particleSystem;
-    }
+// Register with Akko
+if (typeof Akko !== 'undefined') {
+    Akko.addVisualiser('DynamicParticleSwarmVisualiser', DynamicParticleSwarmVisualiser);
 }
