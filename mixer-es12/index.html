@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MuizenMesh Mixer ES12+ - Next-Gen Audio Visualizer</title>
     
+    <!-- Akko CSS -->
+    <link rel="stylesheet" href="../Akko/dist/akko.min.css"/>
+    
     <!-- Custom Mixer Styles -->
     <link rel="stylesheet" href="./css/style.css">
     
@@ -21,6 +24,25 @@
             width: 100vw;
             height: 100vh;
             position: relative;
+        }
+        
+        /* Akko UI styling adjustments */
+        .akko-ui {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: auto !important;
+            height: auto !important;
+            background: rgba(0,0,0,0.8);
+            border-radius: 10px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .akko-canvas {
+            width: 100% !important;
+            height: 100% !important;
         }
         
         .es12-badge {
@@ -239,11 +261,8 @@
     <script type="module">
         console.log('🚀 ES12+ Mixer Loading...');
 
-        // Import our ES12+ visualizers
-        const { default: ES12ParticleSwarm } = await import('./js/components/ES12ParticleSwarm.js');
-        const { default: ES12VoxelGrid } = await import('./js/components/ES12VoxelGrid.js');
-        const { default: ES12LightTunnel } = await import('./js/components/ES12LightTunnel.js');
-        const { default: ES12NodeNetwork } = await import('./js/components/ES12NodeNetwork.js');
+        // Import our ES12+ Akko-compatible visualizers
+        const { default: ES12AkkoParticleSwarm } = await import('./js/components/ES12AkkoParticleSwarm.js');
         
         // ES12+ Akko Wrapper with modern JavaScript features
         class ES12AkkoManager {
@@ -259,9 +278,9 @@
                 try {
                     // Create Akko instance with modern options
                     this.#akkoInstance = new Akko({
-                        container: document.getElementById('akko-container'),
+                        containerId: 'akko-container',
                         autoPlay: true,
-                        useDefaultVisualisers: false, // We'll add our ES12+ visualizers
+                        useDefaultVisualisers: true, // Include built-in visualizers for now
                     });
                     
                     this.#isInitialized = true;
@@ -273,8 +292,10 @@
             }
             
             // Add ES12+ visualizer with optional chaining
-            addVisualizer(visualizer) {
+            addVisualizer(visualizerClass) {
+                const visualizer = new visualizerClass();
                 this.#akkoInstance?.addVisualiser?.(visualizer);
+                console.log(`✅ Added ${visualizer.name || visualizerClass.name}`);
             }
             
             // Add audio tracks with nullish coalescing
@@ -288,14 +309,32 @@
                     await this.init();
                 }
                 
-                // Add demo audio tracks
-                this.addTrack('./audio/Computer Music All-Stars - Albatross v2.mp3', 'Albatross v2');
-                this.addTrack('./audio/Fatal Force - Fan Girls.mp3', 'Fan Girls');
-                
-                // Start Akko
+                // Start Akko first
                 this.#akkoInstance?.start?.();
                 
+                // Try to add demo audio tracks
+                setTimeout(() => {
+                    try {
+                        this.addTrack('./audio/Computer Music All-Stars - Albatross v2.mp3', 'Albatross v2');
+                        this.addTrack('./audio/Fatal Force - Fan Girls.mp3', 'Fan Girls');
+                        console.log('🎵 Demo tracks loaded');
+                    } catch (error) {
+                        console.warn('⚠️ Demo tracks failed, try uploading your own audio files');
+                        this.#enableMicrophoneInput();
+                    }
+                }, 1000);
+                
                 console.log('🎵 ES12+ Akko experience started!');
+            }
+            
+            // Enable microphone input as fallback
+            async #enableMicrophoneInput() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    console.log('🎤 Microphone input enabled - speak or play music near your mic!');
+                } catch (error) {
+                    console.log('🎵 Drag and drop audio files to visualize them!');
+                }
             }
             
             // Getter for Akko instance
@@ -309,26 +348,23 @@
         }
         
         // Initialize
-        let mixerManager = null;
+        let akkoManager = null;
         
         document.getElementById('playButton').addEventListener('click', async function() {
             this.style.display = 'none';
             
-            mixerManager = new ES12VisualizerManager();
+            akkoManager = new ES12AkkoManager();
             
-            // Add ES12+ visualizers
-            mixerManager.addVisualizer(new ES12ParticleSwarm());
-            mixerManager.addVisualizer(new ES12VoxelGrid());
-            mixerManager.addVisualizer(new ES12LightTunnel());
-            mixerManager.addVisualizer(new ES12NodeNetwork());
+            // Add ES12+ Akko-compatible visualizers
+            akkoManager.addVisualizer(ES12AkkoParticleSwarm);
             
-            await mixerManager.start();
+            await akkoManager.start();
             
-            console.log('🚀 ES12+ Mixer started!');
-            console.log('🎹 Controls: 1-4 keys to switch, Space to cycle');
+            console.log('🚀 ES12+ Mixer started with Akko!');
+            console.log('🎵 Use the Akko UI controls to switch visualizers');
         });
         
-        window.es12Mixer = mixerManager;
+        window.es12Mixer = akkoManager;
     </script>
 </body>
 </html>
