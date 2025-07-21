@@ -26,18 +26,56 @@
             position: relative;
         }
         
-        /* Akko UI styling adjustments */
+        /* Enhanced Akko UI styling */
         .akko-ui {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            position: absolute !important;
+            bottom: 40px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
             width: auto !important;
             height: auto !important;
-            background: rgba(0,0,0,0.8);
-            border-radius: 10px;
-            padding: 15px;
-            backdrop-filter: blur(10px);
+            background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(30,30,30,0.9)) !important;
+            border-radius: 15px !important;
+            padding: 20px !important;
+            backdrop-filter: blur(15px) !important;
+            border: 2px solid rgba(255,107,107,0.3) !important;
+            box-shadow: 
+                0 10px 30px rgba(0,0,0,0.5),
+                0 0 20px rgba(255,107,107,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.1) !important;
+            min-width: 400px !important;
+            z-index: 1000 !important;
+        }
+        
+        /* Style Akko controls */
+        .akko-ui button {
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4) !important;
+            border: none !important;
+            border-radius: 8px !important;
+            color: white !important;
+            padding: 8px 16px !important;
+            margin: 0 5px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            font-weight: bold !important;
+        }
+        
+        .akko-ui button:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 5px 15px rgba(255,107,107,0.4) !important;
+        }
+        
+        .akko-ui select {
+            background: rgba(255,255,255,0.1) !important;
+            border: 1px solid rgba(255,107,107,0.3) !important;
+            border-radius: 5px !important;
+            color: white !important;
+            padding: 5px 10px !important;
+            margin: 0 5px !important;
+        }
+        
+        .akko-ui input[type="range"] {
+            accent-color: #ff6b6b !important;
         }
         
         .akko-canvas {
@@ -174,11 +212,11 @@
 
         .feature-indicators {
             position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
+            top: 80px;
+            right: 20px;
             display: flex;
-            gap: 15px;
+            flex-direction: column;
+            gap: 10px;
             z-index: 1000;
         }
 
@@ -262,7 +300,16 @@
         console.log('🚀 ES12+ Mixer Loading...');
 
         // Import our ES12+ Akko-compatible visualizers
+        console.log('📦 Loading ES12+ visualizers...');
         const { default: ES12AkkoParticleSwarm } = await import('./js/components/ES12AkkoParticleSwarm.js');
+        console.log('✅ Loaded ES12AkkoParticleSwarm');
+        const { default: ES12AkkoVoxelGrid } = await import('./js/components/ES12AkkoVoxelGrid.js');
+        console.log('✅ Loaded ES12AkkoVoxelGrid');
+        const { default: ES12AkkoLightTunnel } = await import('./js/components/ES12AkkoLightTunnel.js');
+        console.log('✅ Loaded ES12AkkoLightTunnel');
+        const { default: ES12AkkoNodeNetwork } = await import('./js/components/ES12AkkoNodeNetwork.js');
+        console.log('✅ Loaded ES12AkkoNodeNetwork');
+        console.log('🎉 All ES12+ visualizers loaded successfully!');
         
         // ES12+ Akko Wrapper with modern JavaScript features
         class ES12AkkoManager {
@@ -293,9 +340,13 @@
             
             // Add ES12+ visualizer with optional chaining
             addVisualizer(visualizerClass) {
-                const visualizer = new visualizerClass();
-                this.#akkoInstance?.addVisualiser?.(visualizer);
-                console.log(`✅ Added ${visualizer.name || visualizerClass.name}`);
+                try {
+                    const visualizer = new visualizerClass();
+                    this.#akkoInstance?.addVisualiser?.(visualizer);
+                    console.log(`✅ Added ${visualizer.name || visualizerClass.name}`);
+                } catch (error) {
+                    console.error(`❌ Failed to add visualizer ${visualizerClass.name}:`, error);
+                }
             }
             
             // Add audio tracks with nullish coalescing
@@ -303,21 +354,18 @@
                 this.#akkoInstance?.addTrack?.(source, title ?? 'ES12+ Track');
             }
             
+            
             // Start the experience
             async start() {
-                if (!this.#isInitialized) {
-                    await this.init();
-                }
-                
-                // Start Akko first
+                // Start Akko (visualizers should already be added)
                 this.#akkoInstance?.start?.();
                 
-                // Try to add demo audio tracks
+                // Load demo tracks (now fixed in Akko)
                 setTimeout(() => {
                     try {
                         this.addTrack('./audio/Computer Music All-Stars - Albatross v2.mp3', 'Albatross v2');
                         this.addTrack('./audio/Fatal Force - Fan Girls.mp3', 'Fan Girls');
-                        console.log('🎵 Demo tracks loaded');
+                        console.log('🎵 Demo tracks loaded successfully');
                     } catch (error) {
                         console.warn('⚠️ Demo tracks failed, try uploading your own audio files');
                         this.#enableMicrophoneInput();
@@ -326,6 +374,7 @@
                 
                 console.log('🎵 ES12+ Akko experience started!');
             }
+            
             
             // Enable microphone input as fallback
             async #enableMicrophoneInput() {
@@ -354,9 +403,13 @@
             this.style.display = 'none';
             
             akkoManager = new ES12AkkoManager();
+            await akkoManager.init();
             
-            // Add ES12+ Akko-compatible visualizers
+            // Add ES12+ Akko-compatible visualizers BEFORE starting
             akkoManager.addVisualizer(ES12AkkoParticleSwarm);
+            akkoManager.addVisualizer(ES12AkkoVoxelGrid);
+            akkoManager.addVisualizer(ES12AkkoLightTunnel);
+            akkoManager.addVisualizer(ES12AkkoNodeNetwork);
             
             await akkoManager.start();
             

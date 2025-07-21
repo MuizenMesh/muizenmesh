@@ -10,8 +10,8 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
     
     constructor() {
         super({
-            code: 'ES12PS',
-            name: 'ES12+ Particle Swarm',
+            code: 'PSW',
+            name: 'Particle Swarm',
             fftSize: 256,
             smoothingTimeConstant: 0.8,
         });
@@ -47,7 +47,12 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
             
             // Destructuring with spread operator
             const [x, y, z] = [...Array(3)].map(() => (Math.random() - 0.5) * 100);
-            const [r, g, b] = [...Array(3)].map(() => Math.random());
+            
+            // Bright futuristic color palette
+            const hue = Math.random();
+            const color = new THREE.Color().setHSL(hue, 0.9, 0.7); // High saturation, bright
+            const [r, g, b] = [color.r, color.g, color.b];
+            
             const [vx, vy, vz] = [...Array(3)].map(() => (Math.random() - 0.5) * 2);
             
             // Assignment with array destructuring
@@ -62,12 +67,12 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
         // Store velocities for animation
         this.velocities = velocities;
         
-        // Modern object shorthand
+        // Modern object shorthand with brighter settings
         const materialConfig = {
-            size: 3,
+            size: 4, // Slightly larger for more impact
             vertexColors: true,
             transparent: true,
-            opacity: 0.9,
+            opacity: 0.95, // More opaque for brighter appearance
             blending: THREE.AdditiveBlending,
             sizeAttenuation: true
         };
@@ -92,18 +97,20 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
         ];
         
         // Update particles with modern syntax
-        this.#updateParticles(bass, mid, treble);
+        this.#updateParticles(bass, mid, treble, data);
         
         // Rotation with nullish coalescing
         this.#particleSystem.rotation.y += 0.008 * (bass + 0.1);
         this.#particleSystem.rotation.x += 0.003 * (treble + 0.05);
         
         // Render with optional chaining
-        data.renderer?.render(this.scene, this.camera);
+        if (data.renderer && this.scene && this.camera) {
+            data.renderer.render(this.scene, this.camera);
+        }
     }
     
     // Private update method
-    #updateParticles(bass, mid, treble) {
+    #updateParticles(bass, mid, treble, data) {
         const positions = this.#particleSystem.geometry.attributes.position.array;
         const colors = this.#particleSystem.geometry.attributes.color.array;
         
@@ -150,14 +157,21 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
                 positions[idx] += this.velocities[idx];
             });
             
-            // Update colors with modern array methods
+            // Update colors with modern array methods - brighter futuristic colors
             const audioIndex = Math.floor((i / this.#particleCount) * data.frequencyData.length);
             const audioLevel = data.frequencyData?.[audioIndex] / 255 ?? 0;
             
+            // Bright futuristic color scheme
+            const time = this.#time * 0.5;
+            const hue = (audioIndex / this.#particleCount + time * 0.1) % 1;
+            const saturation = 0.8 + audioLevel * 0.2; // High saturation
+            const lightness = 0.6 + audioLevel * 0.4; // Bright colors
+            
+            const brightColor = new THREE.Color().setHSL(hue, saturation, lightness);
             const colorMultipliers = [
-                audioLevel * 0.9 + 0.1,
-                mid * 0.7 + 0.3,
-                treble * 0.8 + 0.2
+                brightColor.r,
+                brightColor.g, 
+                brightColor.b
             ];
             
             colorMultipliers.forEach((multiplier, idx) => {
