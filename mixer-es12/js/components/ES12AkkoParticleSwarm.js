@@ -4,6 +4,8 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
     #particleSystem = null;
     #time = 0;
     #particleCount = 1000;
+    #particleStyle = 'points'; // 'points', 'cubes', 'spheres'
+    #controlsCreated = false;
     
     // Static private field for tracking instances
     static #instances = new Set();
@@ -48,10 +50,13 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
             // Destructuring with spread operator
             const [x, y, z] = [...Array(3)].map(() => (Math.random() - 0.5) * 100);
             
-            // Bright futuristic color palette
+            // Bright futuristic color palette - ensure visible colors
             const hue = Math.random();
-            const color = new THREE.Color().setHSL(hue, 0.9, 0.7); // High saturation, bright
-            const [r, g, b] = [color.r, color.g, color.b];
+            const [r, g, b] = [
+                0.5 + Math.random() * 0.5, // Ensure bright red component
+                0.5 + Math.random() * 0.5, // Ensure bright green component  
+                0.5 + Math.random() * 0.5  // Ensure bright blue component
+            ];
             
             const [vx, vy, vz] = [...Array(3)].map(() => (Math.random() - 0.5) * 2);
             
@@ -77,15 +82,143 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
             sizeAttenuation: true
         };
         
-        const material = new THREE.PointsMaterial(materialConfig);
-        this.#particleSystem = new THREE.Points(geometry, material);
+        // Create different particle types based on style
+        if (this.#particleStyle === 'cubes') {
+            this.#createCubeParticles(geometry);
+        } else if (this.#particleStyle === 'spheres') {
+            this.#createSphereParticles(geometry);
+        } else {
+            // Default points
+            const material = new THREE.PointsMaterial(materialConfig);
+            this.#particleSystem = new THREE.Points(geometry, material);
+        }
+        
         this.scene?.add(this.#particleSystem);
+    }
+    
+    // Create interactive controls
+    #createControls() {
+        if (this.#controlsCreated) return;
+        
+        // Create control panel
+        const controlPanel = document.createElement('div');
+        controlPanel.style.cssText = `
+            position: fixed;
+            top: 120px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(255,107,107,0.3);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+        `;
+        
+        controlPanel.innerHTML = `
+            <h4 style="margin: 0 0 10px 0; color: #ff6b6b;">🌟 Particle Controls</h4>
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; margin-bottom: 5px;">Style:</label>
+                <select id="particleStyle" style="width: 100%; padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,107,107,0.3);">
+                    <option value="points">✨ Points</option>
+                    <option value="cubes">🧊 Cubes</option>
+                    <option value="spheres">🔮 Spheres</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; margin-bottom: 5px;">Count: <span id="countValue">${this.#particleCount}</span></label>
+                <input type="range" id="particleCount" min="100" max="2000" value="${this.#particleCount}" 
+                       style="width: 100%; accent-color: #ff6b6b;">
+            </div>
+        `;
+        
+        document.body.appendChild(controlPanel);
+        
+        // Add event listeners
+        document.getElementById('particleStyle').addEventListener('change', (e) => {
+            this.#particleStyle = e.target.value;
+            this.#recreateParticles();
+        });
+        
+        document.getElementById('particleCount').addEventListener('input', (e) => {
+            this.#particleCount = parseInt(e.target.value);
+            document.getElementById('countValue').textContent = this.#particleCount;
+            this.#recreateParticles();
+        });
+        
+        this.#controlsCreated = true;
+        this.controlPanel = controlPanel;
+    }
+    
+    // Create cube-based particles
+    #createCubeParticles(geometry) {
+        const group = new THREE.Group();
+        const positions = geometry.attributes.position.array;
+        const colors = geometry.attributes.color.array;
+        
+        for (let i = 0; i < this.#particleCount; i++) {
+            const i3 = i * 3;
+            const cubeGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+            const cubeMaterial = new THREE.MeshBasicMaterial({
+                color: new THREE.Color(colors[i3], colors[i3 + 1], colors[i3 + 2]),
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+            cube.position.set(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+            
+            // Store velocity data on cube for updates
+            cube.userData = { velocityIndex: i3 };
+            group.add(cube);
+        }
+        
+        this.#particleSystem = group;
+    }
+    
+    // Create sphere-based particles
+    #createSphereParticles(geometry) {
+        const group = new THREE.Group();
+        const positions = geometry.attributes.position.array;
+        const colors = geometry.attributes.color.array;
+        
+        for (let i = 0; i < this.#particleCount; i++) {
+            const i3 = i * 3;
+            const sphereGeometry = new THREE.SphereGeometry(0.3, 8, 8);
+            const sphereMaterial = new THREE.MeshBasicMaterial({
+                color: new THREE.Color(colors[i3], colors[i3 + 1], colors[i3 + 2]),
+                transparent: true,
+                opacity: 0.9
+            });
+            
+            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            sphere.position.set(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+            group.add(sphere);
+        }
+        
+        this.#particleSystem = group;
+    }
+    
+    // Recreate particles with new settings
+    #recreateParticles() {
+        if (this.#particleSystem) {
+            this.scene?.remove(this.#particleSystem);
+            this.#particleSystem?.geometry?.dispose();
+            this.#particleSystem?.material?.dispose();
+        }
+        this.#createParticleSystem();
     }
     
     // Akko update method with ES12+ features
     onUpdate(data) {
         // Early return with nullish coalescing
         if (!this.#particleSystem || !data?.frequencyData) return;
+        
+        // Create controls only when this visualizer is active
+        if (!this.#controlsCreated) {
+            this.#createControls();
+        }
         
         this.#time += 0.016;
         
@@ -111,6 +244,16 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
     
     // Private update method
     #updateParticles(bass, mid, treble, data) {
+        // Handle different particle types
+        if (this.#particleStyle === 'points') {
+            this.#updatePointParticles(bass, mid, treble, data);
+        } else {
+            this.#updateMeshParticles(bass, mid, treble, data);
+        }
+    }
+    
+    // Update point-based particles
+    #updatePointParticles(bass, mid, treble, data) {
         const positions = this.#particleSystem.geometry.attributes.position.array;
         const colors = this.#particleSystem.geometry.attributes.color.array;
         
@@ -161,17 +304,11 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
             const audioIndex = Math.floor((i / this.#particleCount) * data.frequencyData.length);
             const audioLevel = data.frequencyData?.[audioIndex] / 255 ?? 0;
             
-            // Bright futuristic color scheme
-            const time = this.#time * 0.5;
-            const hue = (audioIndex / this.#particleCount + time * 0.1) % 1;
-            const saturation = 0.8 + audioLevel * 0.2; // High saturation
-            const lightness = 0.6 + audioLevel * 0.4; // Bright colors
-            
-            const brightColor = new THREE.Color().setHSL(hue, saturation, lightness);
+            // Simple bright color scheme - ensure visibility
             const colorMultipliers = [
-                brightColor.r,
-                brightColor.g, 
-                brightColor.b
+                0.7 + audioLevel * 0.3, // Bright red
+                0.5 + mid * 0.5,        // Green based on mid frequencies
+                0.8 + treble * 0.2      // Bright blue
             ];
             
             colorMultipliers.forEach((multiplier, idx) => {
@@ -182,6 +319,73 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
         // Update geometry
         this.#particleSystem.geometry.attributes.position.needsUpdate = true;
         this.#particleSystem.geometry.attributes.color.needsUpdate = true;
+    }
+    
+    // Update mesh-based particles (cubes/spheres)
+    #updateMeshParticles(bass, mid, treble, data) {
+        if (!this.#particleSystem.children) return;
+        
+        this.#particleSystem.children.forEach((mesh, i) => {
+            const i3 = i * 3;
+            
+            // Get current position
+            const [x, y, z] = [mesh.position.x, mesh.position.y, mesh.position.z];
+            
+            // Calculate swarm center
+            const swarmCenter = {
+                x: Math.sin(this.#time * 0.5) * 40 * (bass || 0.1),
+                y: Math.cos(this.#time * 0.3) * 40 * (mid || 0.1),
+                z: Math.sin(this.#time * 0.7) * 40 * (treble || 0.1)
+            };
+            
+            // Calculate force
+            const distance = Math.hypot(
+                swarmCenter.x - x,
+                swarmCenter.y - y,
+                swarmCenter.z - z
+            );
+            
+            const force = 0.03 * (bass + 0.1);
+            
+            if (distance > 0) {
+                const forceVector = [
+                    (swarmCenter.x - x) / distance * force,
+                    (swarmCenter.y - y) / distance * force,
+                    (swarmCenter.z - z) / distance * force
+                ];
+                
+                // Update velocities
+                this.velocities[i3] += forceVector[0];
+                this.velocities[i3 + 1] += forceVector[1];
+                this.velocities[i3 + 2] += forceVector[2];
+            }
+            
+            // Apply damping and update positions
+            this.velocities[i3] *= 0.98;
+            this.velocities[i3 + 1] *= 0.98;
+            this.velocities[i3 + 2] *= 0.98;
+            
+            mesh.position.x += this.velocities[i3];
+            mesh.position.y += this.velocities[i3 + 1];
+            mesh.position.z += this.velocities[i3 + 2];
+            
+            // Update colors - bright and visible
+            const audioIndex = Math.floor((i / this.#particleSystem.children.length) * data.frequencyData.length);
+            const audioLevel = data.frequencyData?.[audioIndex] / 255 ?? 0;
+            
+            // Bright color scheme
+            const brightColor = {
+                r: 0.7 + audioLevel * 0.3,
+                g: 0.5 + mid * 0.5,
+                b: 0.8 + treble * 0.2
+            };
+            
+            mesh.material.color.setRGB(brightColor.r, brightColor.g, brightColor.b);
+            
+            // Scale based on audio
+            const scale = 0.8 + audioLevel * 1.5;
+            mesh.scale.setScalar(scale);
+        });
     }
     
     // Akko resize method
@@ -197,6 +401,11 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
         this.scene?.remove(this.#particleSystem);
         this.#particleSystem?.geometry?.dispose();
         this.#particleSystem?.material?.dispose();
+        
+        // Remove control panel
+        if (this.controlPanel) {
+            this.controlPanel.remove();
+        }
         
         // Clear references
         delete this.scene;
