@@ -6,6 +6,8 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
     #particleCount = 1000;
     #particleStyle = 'points'; // 'points', 'cubes', 'spheres'
     #controlsCreated = false;
+    #colorScheme = 'rainbow'; // 'rainbow', 'fire', 'ocean', 'neon'
+    #isActive = false;
     
     // Static private field for tracking instances
     static #instances = new Set();
@@ -127,6 +129,16 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
                 </select>
             </div>
             <div style="margin-bottom: 10px;">
+                <label style="display: block; margin-bottom: 5px;">Colors:</label>
+                <select id="colorScheme" style="width: 100%; padding: 5px; border-radius: 5px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,107,107,0.3);">
+                    <option value="rainbow">🌈 Rainbow</option>
+                    <option value="fire">🔥 Fire</option>
+                    <option value="ocean">🌊 Ocean</option>
+                    <option value="neon">⚡ Neon</option>
+                    <option value="cyber">🤖 Cyber</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 10px;">
                 <label style="display: block; margin-bottom: 5px;">Count: <span id="countValue">${this.#particleCount}</span></label>
                 <input type="range" id="particleCount" min="100" max="2000" value="${this.#particleCount}" 
                        style="width: 100%; accent-color: #ff6b6b;">
@@ -141,6 +153,11 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
             this.#recreateParticles();
         });
         
+        document.getElementById('colorScheme').addEventListener('change', (e) => {
+            this.#colorScheme = e.target.value;
+            console.log(`🎨 Color scheme changed to: ${this.#colorScheme}`);
+        });
+        
         document.getElementById('particleCount').addEventListener('input', (e) => {
             this.#particleCount = parseInt(e.target.value);
             document.getElementById('countValue').textContent = this.#particleCount;
@@ -149,6 +166,61 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
         
         this.#controlsCreated = true;
         this.controlPanel = controlPanel;
+    }
+    
+    // Hide controls from other visualizers
+    #hideOtherControls() {
+        // Mark this control panel as active
+        if (this.controlPanel) {
+            this.controlPanel.style.display = 'block';
+        }
+        
+        // Hide any other particle control panels
+        document.querySelectorAll('[id*="particleControls"]:not([data-visualizer="particle-swarm"])').forEach(panel => {
+            panel.style.display = 'none';
+        });
+    }
+    
+    // Get color based on scheme and audio data
+    #getAudioReactiveColor(audioLevel, bass, mid, treble, hueBase = 0) {
+        let color = { r: 0.5, g: 0.5, b: 0.5 };
+        
+        switch (this.#colorScheme) {
+            case 'fire':
+                color = {
+                    r: 0.8 + audioLevel * 0.2,
+                    g: 0.3 + bass * 0.5,
+                    b: 0.1 + treble * 0.2
+                };
+                break;
+            case 'ocean':
+                color = {
+                    r: 0.1 + treble * 0.3,
+                    g: 0.4 + mid * 0.4,
+                    b: 0.7 + audioLevel * 0.3
+                };
+                break;
+            case 'neon':
+                color = {
+                    r: 0.9 + Math.sin(this.#time + hueBase) * 0.1,
+                    g: 0.1 + audioLevel * 0.8,
+                    b: 0.9 + Math.cos(this.#time + hueBase) * 0.1
+                };
+                break;
+            case 'cyber':
+                color = {
+                    r: 0.1 + bass * 0.4,
+                    g: 0.8 + audioLevel * 0.2,
+                    b: 0.9 + treble * 0.1
+                };
+                break;
+            default: // rainbow
+                const hue = (hueBase + this.#time * 0.1 + audioLevel) % 1;
+                const tempColor = new THREE.Color().setHSL(hue, 0.8 + audioLevel * 0.2, 0.6 + audioLevel * 0.4);
+                color = { r: tempColor.r, g: tempColor.g, b: tempColor.b };
+        }
+        
+        return color;
     }
     
     // Create cube-based particles
@@ -215,10 +287,14 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
         // Early return with nullish coalescing
         if (!this.#particleSystem || !data?.frequencyData) return;
         
-        // Create controls only when this visualizer is active
+        // Mark as active and create controls
+        this.#isActive = true;
         if (!this.#controlsCreated) {
             this.#createControls();
         }
+        
+        // Hide other visualizer controls
+        this.#hideOtherControls();
         
         this.#time += 0.016;
         
@@ -304,11 +380,14 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
             const audioIndex = Math.floor((i / this.#particleCount) * data.frequencyData.length);
             const audioLevel = data.frequencyData?.[audioIndex] / 255 ?? 0;
             
-            // Simple bright color scheme - ensure visibility
+            // Audio-reactive color scheme
+            const hueBase = i / this.#particleCount;
+            const brightColor = this.#getAudioReactiveColor(audioLevel, bass, mid, treble, hueBase);
+            
             const colorMultipliers = [
-                0.7 + audioLevel * 0.3, // Bright red
-                0.5 + mid * 0.5,        // Green based on mid frequencies
-                0.8 + treble * 0.2      // Bright blue
+                brightColor.r,
+                brightColor.g,
+                brightColor.b
             ];
             
             colorMultipliers.forEach((multiplier, idx) => {
@@ -369,22 +448,24 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
             mesh.position.y += this.velocities[i3 + 1];
             mesh.position.z += this.velocities[i3 + 2];
             
-            // Update colors - bright and visible
+            // Update colors - audio-reactive with color schemes
             const audioIndex = Math.floor((i / this.#particleSystem.children.length) * data.frequencyData.length);
             const audioLevel = data.frequencyData?.[audioIndex] / 255 ?? 0;
             
-            // Bright color scheme
-            const brightColor = {
-                r: 0.7 + audioLevel * 0.3,
-                g: 0.5 + mid * 0.5,
-                b: 0.8 + treble * 0.2
-            };
+            // Get audio-reactive color
+            const hueBase = i / this.#particleSystem.children.length;
+            const brightColor = this.#getAudioReactiveColor(audioLevel, bass, mid, treble, hueBase);
             
             mesh.material.color.setRGB(brightColor.r, brightColor.g, brightColor.b);
             
-            // Scale based on audio
-            const scale = 0.8 + audioLevel * 1.5;
+            // Enhanced audio-reactive scaling
+            const scale = 0.5 + audioLevel * 2.0 + Math.sin(this.#time * 2 + i * 0.1) * 0.2;
             mesh.scale.setScalar(scale);
+            
+            // Audio-reactive rotation
+            mesh.rotation.x += audioLevel * 0.1;
+            mesh.rotation.y += bass * 0.05;
+            mesh.rotation.z += treble * 0.08;
         });
     }
     
@@ -402,9 +483,10 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
         this.#particleSystem?.geometry?.dispose();
         this.#particleSystem?.material?.dispose();
         
-        // Remove control panel
+        // Mark as inactive and hide controls
+        this.#isActive = false;
         if (this.controlPanel) {
-            this.controlPanel.remove();
+            this.controlPanel.style.display = 'none';
         }
         
         // Clear references
@@ -414,6 +496,13 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
         this.#particleSystem = null;
         
         console.log('🗑️ ES12+ Particle Swarm destroyed');
+    }
+    
+    // Static method to hide all particle swarm controls
+    static hideAllControls() {
+        document.querySelectorAll('[data-visualizer="particle-swarm"]').forEach(panel => {
+            panel.style.display = 'none';
+        });
     }
     
     // Static method to get instance count
