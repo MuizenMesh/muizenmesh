@@ -8,6 +8,9 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
     #controlsCreated = false;
     #colorScheme = 'rainbow'; // 'rainbow', 'fire', 'ocean', 'neon'
     #isActive = false;
+    #lastBassLevel = 0;
+    #lastTrebleLevel = 0;
+    #explosionTrigger = 0;
     
     // Static private field for tracking instances
     static #instances = new Set();
@@ -231,11 +234,12 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
         
         for (let i = 0; i < this.#particleCount; i++) {
             const i3 = i * 3;
-            const cubeGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+            const cubeGeometry = new THREE.BoxGeometry(1.5, 1.5, 1.5); // Larger base size
             const cubeMaterial = new THREE.MeshBasicMaterial({
                 color: new THREE.Color(colors[i3], colors[i3 + 1], colors[i3 + 2]),
                 transparent: true,
-                opacity: 0.8
+                opacity: 0.8,
+                wireframe: Math.random() > 0.7 // Some wireframe cubes for variety
             });
             
             const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
@@ -257,11 +261,12 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
         
         for (let i = 0; i < this.#particleCount; i++) {
             const i3 = i * 3;
-            const sphereGeometry = new THREE.SphereGeometry(0.3, 8, 8);
+            const sphereGeometry = new THREE.SphereGeometry(1.0, 12, 12); // Larger and smoother
             const sphereMaterial = new THREE.MeshBasicMaterial({
                 color: new THREE.Color(colors[i3], colors[i3 + 1], colors[i3 + 2]),
                 transparent: true,
-                opacity: 0.9
+                opacity: 0.9,
+                wireframe: Math.random() > 0.8 // Some wireframe spheres
             });
             
             const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
@@ -404,6 +409,18 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
     #updateMeshParticles(bass, mid, treble, data) {
         if (!this.#particleSystem.children) return;
         
+        // Detect audio spikes for explosive effects
+        const bassSpike = bass > this.#lastBassLevel + 0.3;
+        const trebleSpike = treble > this.#lastTrebleLevel + 0.2;
+        
+        if (bassSpike || trebleSpike) {
+            this.#explosionTrigger = 1.0; // Trigger explosion effect
+        }
+        
+        this.#explosionTrigger *= 0.95; // Decay explosion effect
+        this.#lastBassLevel = bass;
+        this.#lastTrebleLevel = treble;
+        
         this.#particleSystem.children.forEach((mesh, i) => {
             const i3 = i * 3;
             
@@ -458,14 +475,47 @@ export default class ES12AkkoParticleSwarm extends Akko.Visualiser {
             
             mesh.material.color.setRGB(brightColor.r, brightColor.g, brightColor.b);
             
-            // Enhanced audio-reactive scaling
-            const scale = 0.5 + audioLevel * 2.0 + Math.sin(this.#time * 2 + i * 0.1) * 0.2;
-            mesh.scale.setScalar(scale);
+            // EXPLOSIVE audio-reactive effects
+            const bassBoost = bass * 3; // Amplify bass response
+            const trebleBoost = treble * 2; // Amplify treble response
+            const midBoost = mid * 2.5; // Amplify mid response
             
-            // Audio-reactive rotation
-            mesh.rotation.x += audioLevel * 0.1;
-            mesh.rotation.y += bass * 0.05;
-            mesh.rotation.z += treble * 0.08;
+            // Fixed scaling - ensure visibility while keeping reactivity
+            const baseScale = 1.0; // Much larger base size
+            const audioScale = audioLevel * 2; // Moderate audio response
+            const bassScale = bassBoost * 1.5; // Bass boost but not crazy
+            const explosionScale = this.#explosionTrigger * 2; // Explosion effect
+            const pulseScale = Math.sin(this.#time * 8 + i * 0.2) * audioLevel * 0.3;
+            const finalScale = baseScale + audioScale + bassScale + explosionScale + pulseScale;
+            mesh.scale.setScalar(Math.max(0.5, Math.min(finalScale, 5))); // Better size range
+            
+            // Smooth audio-reactive rotation
+            mesh.rotation.x += audioLevel * 0.1 + bassBoost * 0.05;
+            mesh.rotation.y += bassBoost * 0.1 + midBoost * 0.08;
+            mesh.rotation.z += trebleBoost * 0.12 + audioLevel * 0.06;
+            
+            // Controlled audio-reactive movement
+            const jitterAmount = audioLevel * 0.5; // Much less jitter
+            const explosionForce = this.#explosionTrigger * 2; // Reduced explosion force
+            
+            // Gentle explosion effect
+            if (this.#explosionTrigger > 0.3) {
+                const explosionDirection = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.5,
+                    (Math.random() - 0.5) * 0.5,
+                    (Math.random() - 0.5) * 0.5
+                );
+                
+                mesh.position.add(explosionDirection.multiplyScalar(explosionForce));
+            }
+            
+            // Subtle audio jitter
+            mesh.position.x += (Math.random() - 0.5) * jitterAmount;
+            mesh.position.y += (Math.random() - 0.5) * jitterAmount;
+            mesh.position.z += (Math.random() - 0.5) * jitterAmount;
+            
+            // Opacity flashing with treble
+            mesh.material.opacity = 0.6 + trebleBoost * 0.4 + Math.sin(this.#time * 15) * audioLevel * 0.3;
         });
     }
     
